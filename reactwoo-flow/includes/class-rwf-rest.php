@@ -59,6 +59,23 @@ class RWF_REST {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/items/(?P<id>\d+)/prepare-development-handoff',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'prepare_development_handoff' ),
+				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
+				'args'                => array(
+					'id' => array(
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -117,6 +134,30 @@ class RWF_REST {
 				'item_id'      => $post_id,
 				'specification' => $result,
 				'generated_at' => RWF_CPT::get_meta( $post_id, 'specification_generated_at' ),
+			)
+		);
+	}
+
+	/**
+	 * Prepare a development handoff package for Cursor/MCP.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function prepare_development_handoff( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_AI::prepare_development_handoff_and_save( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'     => true,
+				'item_id'     => $post_id,
+				'handoff'     => $result,
+				'prepared_at' => RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' ),
 			)
 		);
 	}

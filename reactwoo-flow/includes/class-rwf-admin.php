@@ -27,6 +27,7 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_save_item', array( __CLASS__, 'handle_save_item' ) );
 		add_action( 'admin_post_rwf_bulk_items', array( __CLASS__, 'handle_bulk_items' ) );
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
+		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
 	}
 
 	/**
@@ -123,6 +124,10 @@ class RWF_Admin {
 				'generateSpecLabel' => __( 'Generate Specification', 'reactwoo-flow' ),
 				'specErrorLabel'    => __( 'Specification generation failed. Check settings and try again.', 'reactwoo-flow' ),
 				'specDoneLabel'     => __( 'Specification saved. Refreshing...', 'reactwoo-flow' ),
+				'preparingHandoff'  => __( 'Preparing Cursor handoff...', 'reactwoo-flow' ),
+				'handoffLabel'      => __( 'Prepare Cursor Handoff', 'reactwoo-flow' ),
+				'handoffErrorLabel' => __( 'Cursor handoff preparation failed.', 'reactwoo-flow' ),
+				'handoffDoneLabel'  => __( 'Cursor handoff package saved. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}
@@ -313,6 +318,45 @@ class RWF_Admin {
 		header( 'Content-Length: ' . strlen( $markdown ) );
 
 		echo $markdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
+	 * Download a prepared development handoff package as JSON.
+	 */
+	public static function handle_export_development_handoff() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export this development handoff.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_development_handoff_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$handoff = RWF_CPT::get_meta( $post_id, 'development_agent_execution' );
+		if ( '' === trim( $handoff ) ) {
+			wp_die( esc_html__( 'This item does not have a development handoff to export.', 'reactwoo-flow' ) );
+		}
+
+		$decoded = json_decode( $handoff, true );
+		if ( is_array( $decoded ) ) {
+			$handoff = wp_json_encode( $decoded, JSON_PRETTY_PRINT );
+		}
+
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-cursor-handoff.json' );
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $handoff ) );
+
+		echo $handoff; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 

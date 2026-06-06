@@ -50,6 +50,44 @@ class RWF_AI {
 	}
 
 	/**
+	 * Prepare a development-agent handoff package and persist it to the item.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array|WP_Error
+	 */
+	public static function prepare_development_handoff_and_save( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		$agent = RWF_Agent::prepare_agent(
+			array(
+				'name'            => __( 'Cursor Development Handoff', 'reactwoo-flow' ),
+				'agent_type'      => 'development',
+				'prompt_template' => 'cursor-development-handoff.md',
+				'input_context'   => self::build_development_handoff_context( $post_id ),
+				'timeout'         => 0,
+			)
+		);
+
+		if ( is_wp_error( $agent ) ) {
+			return $agent;
+		}
+
+		$agent['status']       = RWF_Agent::STATUS_PENDING;
+		$agent['output']       = __( 'Prepared for Cursor MCP handoff. Execution is external to ReactWoo Flow.', 'reactwoo-flow' );
+		$agent['completed_at'] = current_time( 'mysql' );
+
+		self::save_agent_execution( $post_id, 'development', $agent );
+		RWF_CPT::update_meta( $post_id, 'development_handoff_prepared', 'yes' );
+		RWF_CPT::update_meta( $post_id, 'development_handoff_prepared_at', current_time( 'mysql' ) );
+
+		return $agent;
+	}
+
+	/**
 	 * Analyze an item through the planning agent.
 	 *
 	 * @param int $post_id Item post ID.
@@ -198,6 +236,61 @@ class RWF_AI {
 		);
 
 		return $context;
+	}
+
+	/**
+	 * Build the structured payload intended for Cursor development handoff.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_development_handoff_context( $post_id ) {
+		$post         = get_post( $post_id );
+		$item_context = self::build_item_context( $post_id );
+		$specification = RWF_CPT::get_meta( $post_id, 'specification_markdown' );
+
+		$payload = array(
+			'item'                 => $item_context,
+			'specification'        => $specification,
+			'agent_analysis'       => array(),
+			'delivery_intent'      => array(
+				'role_boundary' => __( 'ReactWoo Flow prepares context. Cursor performs development work. Jira tracks delivery. GitHub stores source code.', 'reactwoo-flow' ),
+				'expected_use'  => __( 'Use this payload as Cursor/MCP context for planning, implementation, bug fixing, refactoring, and test generation.', 'reactwoo-flow' ),
+			),
+			'suggested_execution'  => array(
+				'branch'       => RWF_CPT::get_meta( $post_id, 'suggested_github_branch' ),
+				'qa_checklist' => RWF_CPT::get_meta( $post_id, 'suggested_qa_checklist' ),
+				'developer_notes' => RWF_CPT::get_meta( $post_id, 'developer_notes' ),
+			),
+			'future_integrations'  => array(
+				'jira_id'         => RWF_CPT::get_meta( $post_id, 'jira_id' ),
+				'github_branch'   => RWF_CPT::get_meta( $post_id, 'github_branch' ),
+				'pr_url'          => RWF_CPT::get_meta( $post_id, 'pr_url' ),
+				'release_version' => RWF_CPT::get_meta( $post_id, 'release_version' ),
+			),
+			'metadata'             => array(
+				'wordpress_post_id'            => $post_id,
+				'created_at'                   => $post ? get_post_time( 'c', true, $post ) : '',
+				'triage_agent_status'          => RWF_CPT::get_meta( $post_id, 'triage_agent_status' ),
+				'specification_agent_status'   => RWF_CPT::get_meta( $post_id, 'specification_agent_status' ),
+				'specification_generated'      => RWF_CPT::is_specification_generated( $post_id ) ? 'yes' : 'no',
+			),
+		);
+
+		foreach ( RWF_CPT::get_ai_fields() as $field_key => $definition ) {
+			$value = RWF_CPT::get_meta( $post_id, $field_key );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$payload['agent_analysis'][ $field_key ] = array(
+				'label' => $definition['label'],
+				'value' => $value,
+			);
+		}
+
+		return $payload;
 	}
 
 	/**

@@ -44,12 +44,27 @@ $description = $is_existing ? $post->post_content : '';
 			>
 				<?php esc_html_e( 'Generate Specification', 'reactwoo-flow' ); ?>
 			</button>
+			<button
+				type="button"
+				class="button button-secondary rwf-prepare-handoff-button"
+				data-item-id="<?php echo esc_attr( $post_id ); ?>"
+			>
+				<?php esc_html_e( 'Prepare Cursor Handoff', 'reactwoo-flow' ); ?>
+			</button>
 			<?php if ( RWF_CPT::is_specification_generated( $post_id ) ) : ?>
 				<a
 					class="button"
 					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_specification&post_id=' . $post_id ), 'rwf_export_specification_' . $post_id ) ); ?>"
 				>
 					<?php esc_html_e( 'Export Markdown', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
+			<?php if ( RWF_CPT::is_development_handoff_prepared( $post_id ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_development_handoff&post_id=' . $post_id ), 'rwf_export_development_handoff_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export Handoff JSON', 'reactwoo-flow' ); ?>
 				</a>
 			<?php endif; ?>
 			<span class="rwf-analysis-status" aria-live="polite"></span>
@@ -64,6 +79,20 @@ $description = $is_existing ? $post->post_content : '';
 					/* translators: %s: analysis date. */
 					__( 'Agent analysis saved %s.', 'reactwoo-flow' ),
 					RWF_CPT::get_meta( $post_id, 'ai_analyzed_at' )
+				)
+			);
+			?>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $is_existing && RWF_CPT::is_development_handoff_prepared( $post_id ) ) : ?>
+		<div class="rwf-handoff-banner">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: handoff preparation date. */
+					__( 'Cursor development handoff prepared %s.', 'reactwoo-flow' ),
+					RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' )
 				)
 			);
 			?>

@@ -149,7 +149,8 @@
 }
 
 .rwf-ai-banner,
-.rwf-spec-banner {
+.rwf-spec-banner,
+.rwf-handoff-banner {
 	background: #f0f6fc;
 	border-left: 4px solid #2271b1;
 	margin: 12px 0;
@@ -159,6 +160,11 @@
 .rwf-spec-banner {
 	background: #f6f7f7;
 	border-left-color: #646970;
+}
+
+.rwf-handoff-banner {
+	background: #f0f6f2;
+	border-left-color: #008a20;
 }
 
 .rwf-analysis-status {

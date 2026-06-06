@@ -14,9 +14,10 @@ This repository currently contains the Phase 1 MVP:
 - Inbox with filters and bulk actions
 - Item detail screen for request, environment, attachment, agent execution, analysis output, specification, and future integration fields
 - Settings page for agent provider/model defaults plus provider, Jira, Confluence, and GitHub metadata
-- Secured REST endpoints for "Run Triage Agent" and "Generate Specification"
-- Prompt templates for agent item analysis and specification generation
+- Secured REST endpoints for "Run Triage Agent", "Generate Specification", and "Prepare Cursor Handoff"
+- Prompt templates for agent item analysis, specification generation, and Cursor development handoff
 - Editable Markdown specification storage and export
+- Cursor handoff JSON package preparation and export
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
 
@@ -40,6 +41,19 @@ ReactWoo Flow manages:
 - Execution status
 
 Cursor is the preferred future development agent for code generation, bug fixes, refactoring, test creation, development planning, and implementation assistance. ReactWoo Flow prepares structured context for Cursor; Cursor performs development work through a future lightweight MCP bridge.
+
+## Cursor Development Handoff
+
+After triage and/or specification generation, click **Prepare Cursor Handoff** on the item detail screen. ReactWoo Flow stores a pending development-agent package containing:
+
+- item context
+- saved triage output
+- generated specification
+- suggested branch, QA checklist, and developer notes
+- future Jira/GitHub/release placeholders
+- provider/model/prompt/status metadata
+
+The **Export Handoff JSON** button downloads that package for manual use now and future MCP bridge consumption later.
 
 ## Installation
 

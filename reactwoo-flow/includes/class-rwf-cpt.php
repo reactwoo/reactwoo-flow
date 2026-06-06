@@ -378,6 +378,42 @@ class RWF_CPT {
 						'label' => __( 'Specification Error', 'reactwoo-flow' ),
 						'type'  => 'textarea',
 					),
+					'development_agent_name' => array(
+						'label' => __( 'Development Agent Name', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_type' => array(
+						'label' => __( 'Development Agent Type', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_provider' => array(
+						'label' => __( 'Development Provider', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_model' => array(
+						'label' => __( 'Development Model', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_prompt_template' => array(
+						'label' => __( 'Development Prompt Template', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_status' => array(
+						'label' => __( 'Development Handoff Status', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'development_agent_context' => array(
+						'label' => __( 'Development Context Payload', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'development_agent_output' => array(
+						'label' => __( 'Development Output', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'development_agent_error' => array(
+						'label' => __( 'Development Error', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
 				),
 			),
 			'ai_analysis'  => array(
@@ -506,7 +542,7 @@ class RWF_CPT {
 	 * @return array
 	 */
 	public static function get_all_field_keys() {
-		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution' );
+		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution', 'development_agent_execution', 'development_handoff_prepared', 'development_handoff_prepared_at' );
 
 		foreach ( self::get_field_groups() as $group ) {
 			foreach ( array_keys( $group['fields'] ) as $field_key ) {
@@ -567,6 +603,16 @@ class RWF_CPT {
 	 */
 	public static function is_specification_generated( $post_id ) {
 		return 'yes' === self::get_meta( $post_id, 'specification_generated' );
+	}
+
+	/**
+	 * Determine whether an item has a prepared development handoff.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return bool
+	 */
+	public static function is_development_handoff_prepared( $post_id ) {
+		return 'yes' === self::get_meta( $post_id, 'development_handoff_prepared' );
 	}
 
 	/**
