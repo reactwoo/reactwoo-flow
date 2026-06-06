@@ -1,0 +1,162 @@
+.rwf-wrap {
+	max-width: 1280px;
+}
+
+.rwf-actions-bar {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+	margin: 16px 0;
+}
+
+.rwf-stat-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	margin: 20px 0;
+}
+
+.rwf-stat-card,
+.rwf-panel {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.rwf-stat-card {
+	padding: 22px;
+}
+
+.rwf-stat-number {
+	color: #1d2327;
+	display: block;
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.rwf-stat-label {
+	color: #646970;
+	display: block;
+	margin-top: 8px;
+}
+
+.rwf-panel {
+	margin: 18px 0;
+	padding: 20px;
+}
+
+.rwf-panel h2 {
+	margin-top: 0;
+}
+
+.rwf-check-list {
+	list-style: disc;
+	margin-left: 22px;
+}
+
+.rwf-filter-form {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	margin: 16px 0;
+	padding: 12px;
+}
+
+.rwf-filter-form .search-box {
+	float: none;
+	margin: 0 0 12px;
+	position: static;
+}
+
+.rwf-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.rwf-inbox-table .column-cb {
+	width: 32px;
+}
+
+.rwf-pill {
+	background: #f0f0f1;
+	border-radius: 999px;
+	display: inline-block;
+	line-height: 1;
+	padding: 6px 10px;
+}
+
+.rwf-pill-priority {
+	background: #e7f5ff;
+}
+
+.rwf-ai-yes {
+	color: #008a20;
+	font-weight: 600;
+}
+
+.rwf-ai-no {
+	color: #8a2424;
+}
+
+.rwf-item-form {
+	max-width: 980px;
+}
+
+.rwf-field-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.rwf-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 14px;
+}
+
+.rwf-field label {
+	font-weight: 600;
+}
+
+.rwf-field input,
+.rwf-field select,
+.rwf-field textarea {
+	max-width: 100%;
+	width: 100%;
+}
+
+.rwf-field-textarea {
+	grid-column: 1 / -1;
+}
+
+.rwf-panel-ai_analysis .rwf-field-textarea,
+.rwf-panel-attachments .rwf-field-textarea {
+	grid-column: 1 / -1;
+}
+
+.rwf-media-button {
+	align-self: start;
+	margin-top: -10px;
+}
+
+.rwf-ai-banner {
+	background: #f0f6fc;
+	border-left: 4px solid #2271b1;
+	margin: 12px 0;
+	padding: 10px 12px;
+}
+
+.rwf-analysis-status {
+	font-weight: 600;
+}
+
+.rwf-status-success {
+	color: #008a20;
+}
+
+.rwf-status-error {
+	color: #b32d2e;
+}
