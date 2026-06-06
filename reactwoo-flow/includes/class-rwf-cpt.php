@@ -308,6 +308,20 @@ class RWF_CPT {
 				'title'  => __( 'AI Analysis', 'reactwoo-flow' ),
 				'fields' => self::get_ai_fields(),
 			),
+			'specification' => array(
+				'title'  => __( 'Specification', 'reactwoo-flow' ),
+				'fields' => array(
+					'specification_markdown' => array(
+						'label'       => __( 'Specification Markdown', 'reactwoo-flow' ),
+						'type'        => 'textarea',
+						'description' => __( 'Generated from the item context and AI triage output. You can edit it before exporting.', 'reactwoo-flow' ),
+					),
+					'specification_generated_at' => array(
+						'label' => __( 'Specification Generated At', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+				),
+			),
 			'integrations' => array(
 				'title'  => __( 'Future Integrations', 'reactwoo-flow' ),
 				'fields' => array(
@@ -416,7 +430,7 @@ class RWF_CPT {
 	 * @return array
 	 */
 	public static function get_all_field_keys() {
-		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response' );
+		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response' );
 
 		foreach ( self::get_field_groups() as $group ) {
 			foreach ( array_keys( $group['fields'] ) as $field_key ) {
@@ -467,6 +481,16 @@ class RWF_CPT {
 	 */
 	public static function is_ai_analyzed( $post_id ) {
 		return 'yes' === self::get_meta( $post_id, 'ai_analyzed' );
+	}
+
+	/**
+	 * Determine whether an item has a generated specification saved.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return bool
+	 */
+	public static function is_specification_generated( $post_id ) {
+		return 'yes' === self::get_meta( $post_id, 'specification_generated' );
 	}
 
 	/**

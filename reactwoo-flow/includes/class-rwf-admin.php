@@ -26,6 +26,7 @@ class RWF_Admin {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 		add_action( 'admin_post_rwf_save_item', array( __CLASS__, 'handle_save_item' ) );
 		add_action( 'admin_post_rwf_bulk_items', array( __CLASS__, 'handle_bulk_items' ) );
+		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
 	}
 
 	/**
@@ -114,10 +115,14 @@ class RWF_Admin {
 			array(
 				'restUrl'      => esc_url_raw( rest_url( RWF_REST::NAMESPACE ) ),
 				'restNonce'    => wp_create_nonce( 'wp_rest' ),
-				'analysing'    => __( 'Analysing...', 'reactwoo-flow' ),
-				'analyseLabel' => __( 'Analyse with AI', 'reactwoo-flow' ),
-				'errorLabel'   => __( 'Analysis failed. Check settings and try again.', 'reactwoo-flow' ),
-				'doneLabel'    => __( 'Analysis saved. Refreshing...', 'reactwoo-flow' ),
+				'analysing'         => __( 'Analysing...', 'reactwoo-flow' ),
+				'analyseLabel'      => __( 'Analyse with AI', 'reactwoo-flow' ),
+				'errorLabel'        => __( 'Analysis failed. Check settings and try again.', 'reactwoo-flow' ),
+				'doneLabel'         => __( 'Analysis saved. Refreshing...', 'reactwoo-flow' ),
+				'generatingSpec'    => __( 'Generating specification...', 'reactwoo-flow' ),
+				'generateSpecLabel' => __( 'Generate Specification', 'reactwoo-flow' ),
+				'specErrorLabel'    => __( 'Specification generation failed. Check settings and try again.', 'reactwoo-flow' ),
+				'specDoneLabel'     => __( 'Specification saved. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}
@@ -274,6 +279,40 @@ class RWF_Admin {
 				admin_url( 'admin.php' )
 			)
 		);
+		exit;
+	}
+
+	/**
+	 * Download a generated specification as Markdown.
+	 */
+	public static function handle_export_specification() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export this specification.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_specification_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$markdown = RWF_CPT::get_meta( $post_id, 'specification_markdown' );
+		if ( '' === trim( $markdown ) ) {
+			wp_die( esc_html__( 'This item does not have a specification to export.', 'reactwoo-flow' ) );
+		}
+
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-specification.md' );
+
+		nocache_headers();
+		header( 'Content-Type: text/markdown; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $markdown ) );
+
+		echo $markdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 

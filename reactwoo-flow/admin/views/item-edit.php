@@ -37,6 +37,21 @@ $description = $is_existing ? $post->post_content : '';
 			>
 				<?php esc_html_e( 'Analyse with AI', 'reactwoo-flow' ); ?>
 			</button>
+			<button
+				type="button"
+				class="button button-secondary rwf-generate-spec-button"
+				data-item-id="<?php echo esc_attr( $post_id ); ?>"
+			>
+				<?php esc_html_e( 'Generate Specification', 'reactwoo-flow' ); ?>
+			</button>
+			<?php if ( RWF_CPT::is_specification_generated( $post_id ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_specification&post_id=' . $post_id ), 'rwf_export_specification_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export Markdown', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
 			<span class="rwf-analysis-status" aria-live="polite"></span>
 		<?php endif; ?>
 	</div>
@@ -49,6 +64,20 @@ $description = $is_existing ? $post->post_content : '';
 					/* translators: %s: analysis date. */
 					__( 'AI analysis saved %s.', 'reactwoo-flow' ),
 					RWF_CPT::get_meta( $post_id, 'ai_analyzed_at' )
+				)
+			);
+			?>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $is_existing && RWF_CPT::is_specification_generated( $post_id ) ) : ?>
+		<div class="rwf-spec-banner">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: specification generation date. */
+					__( 'Specification generated %s.', 'reactwoo-flow' ),
+					RWF_CPT::get_meta( $post_id, 'specification_generated_at' )
 				)
 			);
 			?>
@@ -85,6 +114,10 @@ $description = $is_existing ? $post->post_content : '';
 
 				<?php if ( 'ai_analysis' === $group_key && ! $is_existing ) : ?>
 					<p class="description"><?php esc_html_e( 'Save the item before running AI analysis.', 'reactwoo-flow' ); ?></p>
+				<?php endif; ?>
+
+				<?php if ( 'specification' === $group_key && ! $is_existing ) : ?>
+					<p class="description"><?php esc_html_e( 'Save the item before generating a specification.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
 				<div class="rwf-field-grid">

@@ -44,6 +44,44 @@
 				});
 		});
 
+		$('.rwf-generate-spec-button').on('click', function () {
+			var $button = $(this);
+			var itemId = $button.data('item-id');
+			var $status = $('.rwf-analysis-status');
+
+			if (!itemId || !window.rwfAdmin) {
+				return;
+			}
+
+			$button.prop('disabled', true).text(rwfAdmin.generatingSpec);
+			$status.removeClass('rwf-status-error rwf-status-success').text('');
+
+			window.fetch(rwfAdmin.restUrl + '/items/' + itemId + '/generate-specification', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-WP-Nonce': rwfAdmin.restNonce
+				}
+			})
+				.then(function (response) {
+					if (!response.ok) {
+						throw new Error('Request failed');
+					}
+
+					return response.json();
+				})
+				.then(function () {
+					$status.addClass('rwf-status-success').text(rwfAdmin.specDoneLabel);
+					window.setTimeout(function () {
+						window.location.reload();
+					}, 800);
+				})
+				.catch(function () {
+					$status.addClass('rwf-status-error').text(rwfAdmin.specErrorLabel);
+					$button.prop('disabled', false).text(rwfAdmin.generateSpecLabel);
+				});
+		});
+
 		$('.rwf-media-button').on('click', function () {
 			var targetId = $(this).data('rwf-media-target');
 			var $target = $('#' + targetId);

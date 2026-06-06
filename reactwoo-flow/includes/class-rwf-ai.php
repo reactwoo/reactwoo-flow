@@ -32,6 +32,24 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate a specification and persist it to the item.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return string|WP_Error
+	 */
+	public static function generate_specification_and_save( $post_id ) {
+		$specification = self::generate_specification( $post_id );
+
+		if ( is_wp_error( $specification ) ) {
+			return $specification;
+		}
+
+		self::save_specification( $post_id, $specification );
+
+		return $specification;
+	}
+
+	/**
 	 * Analyze an item with OpenAI.
 	 *
 	 * @param int $post_id Item post ID.
@@ -57,7 +75,7 @@ class RWF_AI {
 			'messages'        => array(
 				array(
 					'role'    => 'system',
-					'content' => self::get_prompt(),
+					'content' => self::get_prompt( 'analyse-item.md' ),
 				),
 				array(
 					'role'    => 'user',
@@ -115,6 +133,79 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate a Markdown specification with OpenAI.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return string|WP_Error
+	 */
+	public static function generate_specification( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		$api_key = RWF_Settings::get( 'rwf_openai_api_key' );
+		if ( '' === $api_key ) {
+			return new WP_Error( 'rwf_missing_api_key', __( 'Add an OpenAI API key in ReactWoo Flow settings before generating a specification.', 'reactwoo-flow' ) );
+		}
+
+		$model   = RWF_Settings::get( 'rwf_openai_model' );
+		$payload = array(
+			'model'       => '' !== $model ? $model : 'gpt-4o-mini',
+			'temperature' => 0.2,
+			'messages'    => array(
+				array(
+					'role'    => 'system',
+					'content' => self::get_prompt( 'generate-spec.md' ),
+				),
+				array(
+					'role'    => 'user',
+					'content' => wp_json_encode( self::build_specification_context( $post_id ), JSON_PRETTY_PRINT ),
+				),
+			),
+		);
+
+		$response = wp_remote_post(
+			'https://api.openai.com/v1/chat/completions',
+			array(
+				'timeout' => 60,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $api_key,
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode( $payload ),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$status_code = (int) wp_remote_retrieve_response_code( $response );
+		$body        = (string) wp_remote_retrieve_body( $response );
+
+		if ( $status_code < 200 || $status_code >= 300 ) {
+			return new WP_Error(
+				'rwf_openai_error',
+				sprintf(
+					/* translators: %d: HTTP status code. */
+					__( 'OpenAI request failed with status %d.', 'reactwoo-flow' ),
+					$status_code
+				),
+				array( 'body' => $body )
+			);
+		}
+
+		$decoded = json_decode( $body, true );
+		if ( ! is_array( $decoded ) || empty( $decoded['choices'][0]['message']['content'] ) ) {
+			return new WP_Error( 'rwf_openai_invalid_response', __( 'OpenAI returned an unexpected response.', 'reactwoo-flow' ) );
+		}
+
+		return trim( (string) $decoded['choices'][0]['message']['content'] );
+	}
+
+	/**
 	 * Build the context sent to AI.
 	 *
 	 * @param int $post_id Item post ID.
@@ -131,7 +222,7 @@ class RWF_AI {
 		);
 
 		foreach ( RWF_CPT::get_field_groups() as $group_key => $group ) {
-			if ( in_array( $group_key, array( 'ai_analysis', 'integrations' ), true ) ) {
+			if ( in_array( $group_key, array( 'ai_analysis', 'specification', 'integrations' ), true ) ) {
 				continue;
 			}
 
@@ -152,6 +243,39 @@ class RWF_AI {
 				);
 			}
 		}
+
+		return $context;
+	}
+
+	/**
+	 * Build context sent to the specification prompt.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_specification_context( $post_id ) {
+		$post    = get_post( $post_id );
+		$context = self::build_item_context( $post_id );
+
+		$context['ai_analysis'] = array();
+		foreach ( RWF_CPT::get_ai_fields() as $field_key => $definition ) {
+			$value = RWF_CPT::get_meta( $post_id, $field_key );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$context['ai_analysis'][ $field_key ] = array(
+				'label' => $definition['label'],
+				'value' => $value,
+			);
+		}
+
+		$context['metadata'] = array(
+			'wordpress_post_id' => $post_id,
+			'created_at'        => $post ? get_post_time( 'c', true, $post ) : '',
+			'ai_analyzed'       => RWF_CPT::is_ai_analyzed( $post_id ) ? 'yes' : 'no',
+		);
 
 		return $context;
 	}
@@ -189,6 +313,19 @@ class RWF_AI {
 				RWF_CPT::update_meta( $post_id, 'severity', $severity_key );
 			}
 		}
+	}
+
+	/**
+	 * Save generated specification fields.
+	 *
+	 * @param int    $post_id       Item post ID.
+	 * @param string $specification Specification Markdown.
+	 */
+	public static function save_specification( $post_id, $specification ) {
+		RWF_CPT::update_meta( $post_id, 'specification_markdown', $specification );
+		RWF_CPT::update_meta( $post_id, 'specification_raw_response', $specification );
+		RWF_CPT::update_meta( $post_id, 'specification_generated', 'yes' );
+		RWF_CPT::update_meta( $post_id, 'specification_generated_at', current_time( 'mysql' ) );
 	}
 
 	/**
@@ -250,8 +387,8 @@ class RWF_AI {
 	 *
 	 * @return string
 	 */
-	private static function get_prompt() {
-		$prompt_file = RWF_PLUGIN_DIR . 'prompts/analyse-item.md';
+	private static function get_prompt( $file_name ) {
+		$prompt_file = RWF_PLUGIN_DIR . 'prompts/' . sanitize_file_name( $file_name );
 
 		if ( file_exists( $prompt_file ) ) {
 			$prompt = file_get_contents( $prompt_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -260,7 +397,7 @@ class RWF_AI {
 			}
 		}
 
-		return 'You are ReactWoo Flow AI triage. Return strict JSON using the requested field keys.';
+		return 'You are ReactWoo Flow AI. Follow the requested output format exactly.';
 	}
 
 	/**
