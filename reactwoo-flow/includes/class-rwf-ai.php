@@ -1,6 +1,6 @@
 <?php
 /**
- * OpenAI triage integration.
+ * Agent-powered workflow helpers.
  *
  * @package ReactWoo_Flow
  */
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Handles AI analysis for flow items.
+ * Handles agent-driven analysis and specification workflows for flow items.
  */
 class RWF_AI {
 	/**
@@ -50,7 +50,7 @@ class RWF_AI {
 	}
 
 	/**
-	 * Analyze an item with OpenAI.
+	 * Analyze an item through the planning agent.
 	 *
 	 * @param int $post_id Item post ID.
 	 * @return array|WP_Error
@@ -62,69 +62,29 @@ class RWF_AI {
 			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
 		}
 
-		$api_key = RWF_Settings::get( 'rwf_openai_api_key' );
-		if ( '' === $api_key ) {
-			return new WP_Error( 'rwf_missing_api_key', __( 'Add an OpenAI API key in ReactWoo Flow settings before running AI analysis.', 'reactwoo-flow' ) );
-		}
-
-		$model   = RWF_Settings::get( 'rwf_openai_model' );
-		$payload = array(
-			'model'           => '' !== $model ? $model : 'gpt-4o-mini',
-			'temperature'     => 0.2,
-			'response_format' => array( 'type' => 'json_object' ),
-			'messages'        => array(
-				array(
-					'role'    => 'system',
-					'content' => self::get_prompt( 'analyse-item.md' ),
-				),
-				array(
-					'role'    => 'user',
-					'content' => wp_json_encode( self::build_item_context( $post_id ), JSON_PRETTY_PRINT ),
-				),
-			),
-		);
-
-		$response = wp_remote_post(
-			'https://api.openai.com/v1/chat/completions',
+		$agent = RWF_Agent::execute(
 			array(
-				'timeout' => 45,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $api_key,
-					'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode( $payload ),
+				'name'            => __( 'Planning Triage', 'reactwoo-flow' ),
+				'agent_type'      => 'planning',
+				'prompt_template' => 'analyse-item.md',
+				'input_context'   => self::build_item_context( $post_id ),
+				'timeout'         => 45,
+				'temperature'     => 0.2,
+				'response_format' => array( 'type' => 'json_object' ),
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			return $response;
+		if ( is_wp_error( $agent ) ) {
+			self::save_agent_execution( $post_id, 'triage', $agent->get_error_data() );
+			return $agent;
 		}
 
-		$status_code = (int) wp_remote_retrieve_response_code( $response );
-		$body        = (string) wp_remote_retrieve_body( $response );
-
-		if ( $status_code < 200 || $status_code >= 300 ) {
-			return new WP_Error(
-				'rwf_openai_error',
-				sprintf(
-					/* translators: %d: HTTP status code. */
-					__( 'OpenAI request failed with status %d.', 'reactwoo-flow' ),
-					$status_code
-				),
-				array( 'body' => $body )
-			);
-		}
-
-		$decoded = json_decode( $body, true );
-		if ( ! is_array( $decoded ) || empty( $decoded['choices'][0]['message']['content'] ) ) {
-			return new WP_Error( 'rwf_openai_invalid_response', __( 'OpenAI returned an unexpected response.', 'reactwoo-flow' ) );
-		}
-
-		$content = (string) $decoded['choices'][0]['message']['content'];
+		self::save_agent_execution( $post_id, 'triage', $agent );
+		$content = (string) $agent['output'];
 		$data    = json_decode( $content, true );
 
 		if ( ! is_array( $data ) ) {
-			return new WP_Error( 'rwf_openai_invalid_json', __( 'OpenAI did not return valid JSON.', 'reactwoo-flow' ), array( 'content' => $content ) );
+			return new WP_Error( 'rwf_agent_invalid_json', __( 'The selected planning agent did not return valid JSON.', 'reactwoo-flow' ), array( 'content' => $content ) );
 		}
 
 		$data['ai_raw_response'] = $content;
@@ -133,7 +93,7 @@ class RWF_AI {
 	}
 
 	/**
-	 * Generate a Markdown specification with OpenAI.
+	 * Generate a Markdown specification through the planning agent.
 	 *
 	 * @param int $post_id Item post ID.
 	 * @return string|WP_Error
@@ -145,68 +105,28 @@ class RWF_AI {
 			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
 		}
 
-		$api_key = RWF_Settings::get( 'rwf_openai_api_key' );
-		if ( '' === $api_key ) {
-			return new WP_Error( 'rwf_missing_api_key', __( 'Add an OpenAI API key in ReactWoo Flow settings before generating a specification.', 'reactwoo-flow' ) );
-		}
-
-		$model   = RWF_Settings::get( 'rwf_openai_model' );
-		$payload = array(
-			'model'       => '' !== $model ? $model : 'gpt-4o-mini',
-			'temperature' => 0.2,
-			'messages'    => array(
-				array(
-					'role'    => 'system',
-					'content' => self::get_prompt( 'generate-spec.md' ),
-				),
-				array(
-					'role'    => 'user',
-					'content' => wp_json_encode( self::build_specification_context( $post_id ), JSON_PRETTY_PRINT ),
-				),
-			),
-		);
-
-		$response = wp_remote_post(
-			'https://api.openai.com/v1/chat/completions',
+		$agent = RWF_Agent::execute(
 			array(
-				'timeout' => 60,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $api_key,
-					'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode( $payload ),
+				'name'            => __( 'Specification Generator', 'reactwoo-flow' ),
+				'agent_type'      => 'planning',
+				'prompt_template' => 'generate-spec.md',
+				'input_context'   => self::build_specification_context( $post_id ),
+				'timeout'         => 60,
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			return $response;
+		if ( is_wp_error( $agent ) ) {
+			self::save_agent_execution( $post_id, 'specification', $agent->get_error_data() );
+			return $agent;
 		}
 
-		$status_code = (int) wp_remote_retrieve_response_code( $response );
-		$body        = (string) wp_remote_retrieve_body( $response );
+		self::save_agent_execution( $post_id, 'specification', $agent );
 
-		if ( $status_code < 200 || $status_code >= 300 ) {
-			return new WP_Error(
-				'rwf_openai_error',
-				sprintf(
-					/* translators: %d: HTTP status code. */
-					__( 'OpenAI request failed with status %d.', 'reactwoo-flow' ),
-					$status_code
-				),
-				array( 'body' => $body )
-			);
-		}
-
-		$decoded = json_decode( $body, true );
-		if ( ! is_array( $decoded ) || empty( $decoded['choices'][0]['message']['content'] ) ) {
-			return new WP_Error( 'rwf_openai_invalid_response', __( 'OpenAI returned an unexpected response.', 'reactwoo-flow' ) );
-		}
-
-		return trim( (string) $decoded['choices'][0]['message']['content'] );
+		return trim( (string) $agent['output'] );
 	}
 
 	/**
-	 * Build the context sent to AI.
+	 * Build the item context sent to an agent.
 	 *
 	 * @param int $post_id Item post ID.
 	 * @return array
@@ -222,7 +142,7 @@ class RWF_AI {
 		);
 
 		foreach ( RWF_CPT::get_field_groups() as $group_key => $group ) {
-			if ( in_array( $group_key, array( 'ai_analysis', 'specification', 'integrations' ), true ) ) {
+			if ( in_array( $group_key, array( 'agent_execution', 'ai_analysis', 'specification', 'integrations' ), true ) ) {
 				continue;
 			}
 
@@ -281,7 +201,7 @@ class RWF_AI {
 	}
 
 	/**
-	 * Save AI analysis fields.
+	 * Save agent analysis fields.
 	 *
 	 * @param int   $post_id  Item post ID.
 	 * @param array $analysis Analysis data.
@@ -326,6 +246,30 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'specification_raw_response', $specification );
 		RWF_CPT::update_meta( $post_id, 'specification_generated', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'specification_generated_at', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Save an agent execution record against the item.
+	 *
+	 * @param int          $post_id Item post ID.
+	 * @param string       $scope   Workflow scope.
+	 * @param array|string $agent   Agent execution data.
+	 */
+	private static function save_agent_execution( $post_id, $scope, $agent ) {
+		if ( ! is_array( $agent ) ) {
+			return;
+		}
+
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_name', isset( $agent['name'] ) ? $agent['name'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_type', isset( $agent['agent_type'] ) ? $agent['agent_type'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_provider', isset( $agent['provider'] ) ? $agent['provider'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_model', isset( $agent['model'] ) ? $agent['model'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_prompt_template', isset( $agent['prompt_template'] ) ? $agent['prompt_template'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_status', isset( $agent['status'] ) ? $agent['status'] : RWF_Agent::STATUS_FAILED );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_context', isset( $agent['input_context'] ) ? wp_json_encode( $agent['input_context'], JSON_PRETTY_PRINT ) : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_output', isset( $agent['output'] ) ? $agent['output'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_error', isset( $agent['error'] ) ? $agent['error'] : '' );
+		RWF_CPT::update_meta( $post_id, $scope . '_agent_execution', wp_json_encode( $agent, JSON_PRETTY_PRINT ) );
 	}
 
 	/**
@@ -380,24 +324,6 @@ class RWF_AI {
 		}
 
 		return $data;
-	}
-
-	/**
-	 * Read the analysis prompt.
-	 *
-	 * @return string
-	 */
-	private static function get_prompt( $file_name ) {
-		$prompt_file = RWF_PLUGIN_DIR . 'prompts/' . sanitize_file_name( $file_name );
-
-		if ( file_exists( $prompt_file ) ) {
-			$prompt = file_get_contents( $prompt_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			if ( false !== $prompt ) {
-				return $prompt;
-			}
-		}
-
-		return 'You are ReactWoo Flow AI. Follow the requested output format exactly.';
 	}
 
 	/**

@@ -69,6 +69,10 @@
 	position: static;
 }
 
+.rwf-agent-catalog {
+	margin: 12px 0 18px;
+}
+
 .rwf-filters {
 	display: flex;
 	flex-wrap: wrap;
@@ -133,6 +137,7 @@
 }
 
 .rwf-panel-ai_analysis .rwf-field-textarea,
+.rwf-panel-agent_execution .rwf-field-textarea,
 .rwf-panel-specification .rwf-field-textarea,
 .rwf-panel-attachments .rwf-field-textarea {
 	grid-column: 1 / -1;

@@ -1,6 +1,8 @@
 # ReactWoo Flow
 
-ReactWoo Flow is an internal WordPress operations plugin for ReactWoo product intake and AI triage.
+ReactWoo Flow is an internal WordPress operations plugin for ReactWoo product intake, support operations, and agent orchestration.
+
+ReactWoo Flow is not the AI engine. It captures requests, builds structured context, routes work to the selected agent/provider, stores outputs, and coordinates the delivery lifecycle.
 
 ## MVP Scope
 
@@ -10,24 +12,45 @@ This repository currently contains the Phase 1 MVP:
 - Single custom post type: `rwf_item`
 - ReactWoo Flow admin dashboard
 - Inbox with filters and bulk actions
-- Item detail screen for request, environment, attachment, AI analysis, specification, and future integration fields
-- Settings page for OpenAI plus future Jira, Confluence, and GitHub metadata
-- Secured REST endpoints for "Analyse with AI" and "Generate Specification"
-- Prompt templates for AI item analysis and specification generation
+- Item detail screen for request, environment, attachment, agent execution, analysis output, specification, and future integration fields
+- Settings page for agent provider/model defaults plus provider, Jira, Confluence, and GitHub metadata
+- Secured REST endpoints for "Run Triage Agent" and "Generate Specification"
+- Prompt templates for agent item analysis and specification generation
 - Editable Markdown specification storage and export
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
+
+## Architecture
+
+```text
+ReactWoo Flow
+    -> Agent Orchestrator
+    -> Selected AI Provider
+    -> Result Returned
+```
+
+ReactWoo Flow manages:
+
+- Agent type
+- Provider
+- Model
+- Prompt template
+- Context payload
+- Output
+- Execution status
+
+Cursor is the preferred future development agent for code generation, bug fixes, refactoring, test creation, development planning, and implementation assistance. ReactWoo Flow prepares structured context for Cursor; Cursor performs development work through a future lightweight MCP bridge.
 
 ## Installation
 
 Copy or symlink the `reactwoo-flow/` directory into a WordPress installation's `wp-content/plugins/` directory, then activate **ReactWoo Flow** from the WordPress admin.
 
-## AI Triage
+## Agent Triage
 
 1. Open **ReactWoo Flow > Settings**.
-2. Add an OpenAI API key and model.
+2. Choose the planning agent provider/model and add provider credentials.
 3. Create or edit an item in **ReactWoo Flow > Inbox**.
-4. Click **Analyse with AI** to save structured AI output to the item.
+4. Click **Run Triage Agent** to save structured output and execution metadata to the item.
 
 ## Specification Generation
 

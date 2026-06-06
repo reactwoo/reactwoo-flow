@@ -35,7 +35,7 @@ $description = $is_existing ? $post->post_content : '';
 				class="button button-secondary rwf-analyse-button"
 				data-item-id="<?php echo esc_attr( $post_id ); ?>"
 			>
-				<?php esc_html_e( 'Analyse with AI', 'reactwoo-flow' ); ?>
+				<?php esc_html_e( 'Run Triage Agent', 'reactwoo-flow' ); ?>
 			</button>
 			<button
 				type="button"
@@ -62,7 +62,7 @@ $description = $is_existing ? $post->post_content : '';
 			echo esc_html(
 				sprintf(
 					/* translators: %s: analysis date. */
-					__( 'AI analysis saved %s.', 'reactwoo-flow' ),
+					__( 'Agent analysis saved %s.', 'reactwoo-flow' ),
 					RWF_CPT::get_meta( $post_id, 'ai_analyzed_at' )
 				)
 			);
@@ -113,7 +113,11 @@ $description = $is_existing ? $post->post_content : '';
 				<?php endif; ?>
 
 				<?php if ( 'ai_analysis' === $group_key && ! $is_existing ) : ?>
-					<p class="description"><?php esc_html_e( 'Save the item before running AI analysis.', 'reactwoo-flow' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Save the item before running agent analysis.', 'reactwoo-flow' ); ?></p>
+				<?php endif; ?>
+
+				<?php if ( 'agent_execution' === $group_key ) : ?>
+					<p class="description"><?php esc_html_e( 'ReactWoo Flow stores orchestration metadata for each agent run: agent type, provider, model, prompt template, context payload, output, and execution status.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
 				<?php if ( 'specification' === $group_key && ! $is_existing ) : ?>

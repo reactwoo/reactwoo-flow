@@ -81,11 +81,10 @@ class RWF_CPT {
 			'bug_report'            => __( 'Bug Report', 'reactwoo-flow' ),
 			'support_ticket'        => __( 'Support Ticket', 'reactwoo-flow' ),
 			'ux_ui_issue'           => __( 'UX/UI Issue', 'reactwoo-flow' ),
-			'security_issue'        => __( 'Security Issue', 'reactwoo-flow' ),
 			'technical_debt'        => __( 'Technical Debt', 'reactwoo-flow' ),
+			'security_issue'        => __( 'Security Issue', 'reactwoo-flow' ),
 			'documentation_request' => __( 'Documentation Request', 'reactwoo-flow' ),
 			'research_spike'        => __( 'Research Spike', 'reactwoo-flow' ),
-			'release_task'          => __( 'Release Task', 'reactwoo-flow' ),
 		);
 	}
 
@@ -304,8 +303,85 @@ class RWF_CPT {
 					),
 				),
 			),
+			'agent_execution' => array(
+				'title'  => __( 'Agent Execution', 'reactwoo-flow' ),
+				'fields' => array(
+					'triage_agent_name' => array(
+						'label' => __( 'Triage Agent Name', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_type' => array(
+						'label' => __( 'Triage Agent Type', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_provider' => array(
+						'label' => __( 'Triage Provider', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_model' => array(
+						'label' => __( 'Triage Model', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_prompt_template' => array(
+						'label' => __( 'Triage Prompt Template', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_status' => array(
+						'label' => __( 'Triage Execution Status', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'triage_agent_context' => array(
+						'label' => __( 'Triage Context Payload', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'triage_agent_output' => array(
+						'label' => __( 'Triage Output', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'triage_agent_error' => array(
+						'label' => __( 'Triage Error', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'specification_agent_name' => array(
+						'label' => __( 'Specification Agent Name', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_type' => array(
+						'label' => __( 'Specification Agent Type', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_provider' => array(
+						'label' => __( 'Specification Provider', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_model' => array(
+						'label' => __( 'Specification Model', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_prompt_template' => array(
+						'label' => __( 'Specification Prompt Template', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_status' => array(
+						'label' => __( 'Specification Execution Status', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'specification_agent_context' => array(
+						'label' => __( 'Specification Context Payload', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'specification_agent_output' => array(
+						'label' => __( 'Specification Output', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+					'specification_agent_error' => array(
+						'label' => __( 'Specification Error', 'reactwoo-flow' ),
+						'type'  => 'textarea',
+					),
+				),
+			),
 			'ai_analysis'  => array(
-				'title'  => __( 'AI Analysis', 'reactwoo-flow' ),
+				'title'  => __( 'Agent Analysis Output', 'reactwoo-flow' ),
 				'fields' => self::get_ai_fields(),
 			),
 			'specification' => array(
@@ -314,7 +390,7 @@ class RWF_CPT {
 					'specification_markdown' => array(
 						'label'       => __( 'Specification Markdown', 'reactwoo-flow' ),
 						'type'        => 'textarea',
-						'description' => __( 'Generated from the item context and AI triage output. You can edit it before exporting.', 'reactwoo-flow' ),
+						'description' => __( 'Generated from the item context and saved agent triage output. You can edit it before exporting.', 'reactwoo-flow' ),
 					),
 					'specification_generated_at' => array(
 						'label' => __( 'Specification Generated At', 'reactwoo-flow' ),
@@ -430,7 +506,7 @@ class RWF_CPT {
 	 * @return array
 	 */
 	public static function get_all_field_keys() {
-		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response' );
+		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution' );
 
 		foreach ( self::get_field_groups() as $group ) {
 			foreach ( array_keys( $group['fields'] ) as $field_key ) {

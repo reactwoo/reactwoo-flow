@@ -32,7 +32,7 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 				echo esc_html(
 					sprintf(
 						/* translators: 1: updated count, 2: error count. */
-						__( '%1$d items updated. %2$d AI analysis requests failed.', 'reactwoo-flow' ),
+						__( '%1$d items updated. %2$d triage agent requests failed.', 'reactwoo-flow' ),
 						$count,
 						$errors
 					)
@@ -91,7 +91,7 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 				<label class="screen-reader-text" for="rwf-bulk-action"><?php esc_html_e( 'Bulk action', 'reactwoo-flow' ); ?></label>
 				<select id="rwf-bulk-action" name="bulk_action">
 					<option value=""><?php esc_html_e( 'Bulk actions', 'reactwoo-flow' ); ?></option>
-					<option value="analyse"><?php esc_html_e( 'Analyse with AI', 'reactwoo-flow' ); ?></option>
+					<option value="analyse"><?php esc_html_e( 'Run Triage Agent', 'reactwoo-flow' ); ?></option>
 					<option value="change_status"><?php esc_html_e( 'Change Status', 'reactwoo-flow' ); ?></option>
 					<option value="archive"><?php esc_html_e( 'Archive', 'reactwoo-flow' ); ?></option>
 				</select>
@@ -118,7 +118,7 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 					<th><?php esc_html_e( 'Type', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Priority', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Status', 'reactwoo-flow' ); ?></th>
-					<th><?php esc_html_e( 'AI Analysed', 'reactwoo-flow' ); ?></th>
+					<th><?php esc_html_e( 'Agent Analysed', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Created Date', 'reactwoo-flow' ); ?></th>
 				</tr>
 			</thead>

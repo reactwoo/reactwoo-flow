@@ -51,6 +51,7 @@ final class RWF_Plugin {
 	private function load_dependencies() {
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-cpt.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-settings.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-agent.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-ai.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-rest.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-admin.php';

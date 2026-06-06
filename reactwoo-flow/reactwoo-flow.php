@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ReactWoo Flow
- * Description: AI-native product intake and triage platform for ReactWoo operations.
+ * Description: Agent-orchestrated product intake and support operations platform for ReactWoo.
  * Version: 0.1.0
  * Author: ReactWoo
  * Text Domain: reactwoo-flow

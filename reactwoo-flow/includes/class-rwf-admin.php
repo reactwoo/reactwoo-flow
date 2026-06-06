@@ -116,9 +116,9 @@ class RWF_Admin {
 				'restUrl'      => esc_url_raw( rest_url( RWF_REST::NAMESPACE ) ),
 				'restNonce'    => wp_create_nonce( 'wp_rest' ),
 				'analysing'         => __( 'Analysing...', 'reactwoo-flow' ),
-				'analyseLabel'      => __( 'Analyse with AI', 'reactwoo-flow' ),
-				'errorLabel'        => __( 'Analysis failed. Check settings and try again.', 'reactwoo-flow' ),
-				'doneLabel'         => __( 'Analysis saved. Refreshing...', 'reactwoo-flow' ),
+				'analyseLabel'      => __( 'Run Triage Agent', 'reactwoo-flow' ),
+				'errorLabel'        => __( 'Triage agent failed. Check provider settings and try again.', 'reactwoo-flow' ),
+				'doneLabel'         => __( 'Agent analysis saved. Refreshing...', 'reactwoo-flow' ),
 				'generatingSpec'    => __( 'Generating specification...', 'reactwoo-flow' ),
 				'generateSpecLabel' => __( 'Generate Specification', 'reactwoo-flow' ),
 				'specErrorLabel'    => __( 'Specification generation failed. Check settings and try again.', 'reactwoo-flow' ),
@@ -470,7 +470,7 @@ class RWF_Admin {
 	}
 
 	/**
-	 * Count items with AI analysis.
+	 * Count items with agent analysis.
 	 *
 	 * @return int
 	 */

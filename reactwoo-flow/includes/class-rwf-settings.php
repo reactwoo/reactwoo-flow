@@ -46,17 +46,82 @@ class RWF_Settings {
 	 */
 	public static function get_settings_schema() {
 		return array(
+			'rwf_planning_agent_provider' => array(
+				'label'   => __( 'Planning Agent Provider', 'reactwoo-flow' ),
+				'type'    => 'select',
+				'section' => 'agents',
+				'options' => RWF_Agent::get_providers(),
+				'default' => 'openai',
+			),
+			'rwf_planning_agent_model'    => array(
+				'label'   => __( 'Planning Agent Model', 'reactwoo-flow' ),
+				'type'    => 'text',
+				'section' => 'agents',
+				'default' => 'gpt-4o-mini',
+			),
+			'rwf_development_agent_provider' => array(
+				'label'   => __( 'Development Agent Provider', 'reactwoo-flow' ),
+				'type'    => 'select',
+				'section' => 'agents',
+				'options' => RWF_Agent::get_providers(),
+				'default' => 'cursor_mcp',
+			),
+			'rwf_development_agent_model' => array(
+				'label'   => __( 'Development Agent Model', 'reactwoo-flow' ),
+				'type'    => 'text',
+				'section' => 'agents',
+				'default' => 'cursor-default',
+			),
+			'rwf_qa_agent_provider'       => array(
+				'label'   => __( 'QA Agent Provider', 'reactwoo-flow' ),
+				'type'    => 'select',
+				'section' => 'agents',
+				'options' => RWF_Agent::get_providers(),
+				'default' => 'manual',
+			),
+			'rwf_qa_agent_model'          => array(
+				'label'   => __( 'QA Agent Model', 'reactwoo-flow' ),
+				'type'    => 'text',
+				'section' => 'agents',
+				'default' => 'vision-capable',
+			),
+			'rwf_ux_agent_provider'       => array(
+				'label'   => __( 'UX Agent Provider', 'reactwoo-flow' ),
+				'type'    => 'select',
+				'section' => 'agents',
+				'options' => RWF_Agent::get_providers(),
+				'default' => 'cursor_mcp',
+			),
+			'rwf_ux_agent_model'          => array(
+				'label'   => __( 'UX Agent Model', 'reactwoo-flow' ),
+				'type'    => 'text',
+				'section' => 'agents',
+				'default' => 'claude',
+			),
+			'rwf_release_agent_provider'  => array(
+				'label'   => __( 'Release Agent Provider', 'reactwoo-flow' ),
+				'type'    => 'select',
+				'section' => 'agents',
+				'options' => RWF_Agent::get_providers(),
+				'default' => 'openai',
+			),
+			'rwf_release_agent_model'     => array(
+				'label'   => __( 'Release Agent Model', 'reactwoo-flow' ),
+				'type'    => 'text',
+				'section' => 'agents',
+				'default' => 'gpt-4o-mini',
+			),
 			'rwf_openai_api_key'       => array(
-				'label'             => __( 'OpenAI API Key', 'reactwoo-flow' ),
+				'label'             => __( 'OpenAI / GPT-compatible API Key', 'reactwoo-flow' ),
 				'type'              => 'password',
-				'section'           => 'openai',
+				'section'           => 'providers',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
 			),
-			'rwf_openai_model'         => array(
-				'label'   => __( 'OpenAI Model', 'reactwoo-flow' ),
-				'type'    => 'text',
-				'section' => 'openai',
-				'default' => 'gpt-4o-mini',
+			'rwf_cursor_mcp_endpoint'  => array(
+				'label'       => __( 'Cursor MCP Bridge Endpoint', 'reactwoo-flow' ),
+				'type'        => 'url',
+				'section'     => 'providers',
+				'description' => __( 'Future bridge endpoint for handing structured tasks to Cursor.', 'reactwoo-flow' ),
 			),
 			'rwf_jira_url'             => array(
 				'label'   => __( 'Jira URL', 'reactwoo-flow' ),
@@ -103,6 +168,38 @@ class RWF_Settings {
 		$default = isset( $schema[ $option_key ]['default'] ) ? $schema[ $option_key ]['default'] : '';
 
 		return (string) get_option( $option_key, $default );
+	}
+
+	/**
+	 * Get the configured provider for an agent type.
+	 *
+	 * @param string $agent_type Agent type key.
+	 * @return string
+	 */
+	public static function get_agent_provider( $agent_type ) {
+		$option_key = 'rwf_' . sanitize_key( $agent_type ) . '_agent_provider';
+
+		return self::get( $option_key );
+	}
+
+	/**
+	 * Get the configured model for an agent type.
+	 *
+	 * @param string $agent_type Agent type key.
+	 * @return string
+	 */
+	public static function get_agent_model( $agent_type ) {
+		$option_key = 'rwf_' . sanitize_key( $agent_type ) . '_agent_model';
+		$model      = self::get( $option_key );
+
+		if ( 'planning' === $agent_type && '' === get_option( $option_key, '' ) ) {
+			$legacy_model = get_option( 'rwf_openai_model', '' );
+			if ( '' !== $legacy_model ) {
+				return (string) $legacy_model;
+			}
+		}
+
+		return $model;
 	}
 
 	/**

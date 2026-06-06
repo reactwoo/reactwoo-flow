@@ -47,11 +47,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="rwf-panel">
 		<h2><?php esc_html_e( 'MVP Scope', 'reactwoo-flow' ); ?></h2>
-		<p><?php esc_html_e( 'ReactWoo Flow currently owns product intake, support desk capture, structured triage fields, AI analysis, and WordPress-stored specification generation. Jira, GitHub, Confluence, Cursor, release notes, QA, and UX integrations are recorded as future placeholders only.', 'reactwoo-flow' ); ?></p>
+		<p><?php esc_html_e( 'ReactWoo Flow currently owns product intake, support desk capture, structured triage fields, agent orchestration, and WordPress-stored specification generation. Cursor is the primary future development executor; Jira, GitHub, Confluence, release notes, QA, and UX integrations are recorded as future placeholders only.', 'reactwoo-flow' ); ?></p>
 		<ul class="rwf-check-list">
 			<li><?php esc_html_e( 'Single rwf_item custom post type', 'reactwoo-flow' ); ?></li>
 			<li><?php esc_html_e( 'Product, type, priority, status, reporter, and environment fields', 'reactwoo-flow' ); ?></li>
-			<li><?php esc_html_e( 'OpenAI-powered triage output saved against each item', 'reactwoo-flow' ); ?></li>
+			<li><?php esc_html_e( 'Provider-agnostic agent execution metadata saved against each item', 'reactwoo-flow' ); ?></li>
 		</ul>
 	</div>
 </div>
