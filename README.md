@@ -20,6 +20,7 @@ This repository currently contains the Phase 1 MVP:
 - Cursor handoff JSON package preparation and export
 - Agent run history and JSON export for orchestration auditability
 - Controlled workflow status transitions with status history
+- Authenticated structured item context endpoint for future Cursor MCP consumption
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
 
@@ -58,6 +59,16 @@ After triage and/or specification generation, click **Prepare Cursor Handoff** o
 - provider/model/prompt/status metadata
 
 The **Export Handoff JSON** button downloads that package for manual use now and future MCP bridge consumption later.
+
+## Cursor Context Endpoint
+
+Future MCP bridge clients can read structured item context from:
+
+```text
+GET /wp-json/reactwoo-flow/v1/items/{id}/context
+```
+
+The response includes request fields, workflow status/history, agent analysis output, generated specification, development handoff metadata, agent run history, and future integration placeholders. The endpoint is authenticated and read-only; ReactWoo Flow prepares context while Cursor remains responsible for development execution.
 
 ## Agent Run History
 

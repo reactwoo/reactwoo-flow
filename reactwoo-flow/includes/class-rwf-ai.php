@@ -294,6 +294,80 @@ class RWF_AI {
 	}
 
 	/**
+	 * Build a read-only context package for Cursor/MCP consumers.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_cursor_context( $post_id ) {
+		$post           = get_post( $post_id );
+		$current_status = RWF_CPT::get_meta( $post_id, 'status' );
+		$current_status = $current_status ? $current_status : 'new';
+
+		return array(
+			'item'                 => self::build_item_context( $post_id ),
+			'workflow'             => array(
+				'current_status'        => $current_status,
+				'current_status_label'  => RWF_CPT::option_label( RWF_CPT::get_statuses(), $current_status ),
+				'status_changed_at'     => RWF_CPT::get_meta( $post_id, 'status_changed_at' ),
+				'available_transitions' => RWF_CPT::get_available_status_transitions( $current_status ),
+				'status_history'        => RWF_CPT::get_status_history( $post_id ),
+			),
+			'agent_analysis'       => self::build_agent_analysis_context( $post_id ),
+			'specification'        => array(
+				'generated'    => RWF_CPT::is_specification_generated( $post_id ),
+				'generated_at' => RWF_CPT::get_meta( $post_id, 'specification_generated_at' ),
+				'markdown'     => RWF_CPT::get_meta( $post_id, 'specification_markdown' ),
+			),
+			'development_handoff'  => array(
+				'prepared'    => RWF_CPT::is_development_handoff_prepared( $post_id ),
+				'prepared_at' => RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' ),
+				'package'     => json_decode( RWF_CPT::get_meta( $post_id, 'development_agent_execution' ), true ),
+			),
+			'agent_runs'           => RWF_CPT::get_agent_runs( $post_id ),
+			'future_integrations'  => array(
+				'jira_id'         => RWF_CPT::get_meta( $post_id, 'jira_id' ),
+				'github_branch'   => RWF_CPT::get_meta( $post_id, 'github_branch' ),
+				'pr_url'          => RWF_CPT::get_meta( $post_id, 'pr_url' ),
+				'release_version' => RWF_CPT::get_meta( $post_id, 'release_version' ),
+			),
+			'metadata'             => array(
+				'wordpress_post_id' => $post_id,
+				'title'             => $post ? get_the_title( $post ) : '',
+				'created_at'        => $post ? get_post_time( 'c', true, $post ) : '',
+				'updated_at'        => $post ? get_post_modified_time( 'c', true, $post ) : '',
+				'context_version'   => '1.0',
+				'role_boundary'     => __( 'ReactWoo Flow prepares context and orchestration metadata. Cursor performs development work.', 'reactwoo-flow' ),
+			),
+		);
+	}
+
+	/**
+	 * Build saved agent analysis fields.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	private static function build_agent_analysis_context( $post_id ) {
+		$analysis = array();
+
+		foreach ( RWF_CPT::get_ai_fields() as $field_key => $definition ) {
+			$value = RWF_CPT::get_meta( $post_id, $field_key );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$analysis[ $field_key ] = array(
+				'label' => $definition['label'],
+				'value' => $value,
+			);
+		}
+
+		return $analysis;
+	}
+
+	/**
 	 * Save agent analysis fields.
 	 *
 	 * @param int   $post_id  Item post ID.
