@@ -100,7 +100,7 @@ Optional defaults:
 [reactwoo_flow_intake product="reactwoo_core" item_type="support_ticket" title="Send ReactWoo Support Request"]
 ```
 
-Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`.
+Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`. The form captures product/type, reporter details, description, environment versions, browser/device, reproduction details, screenshots, and logs.
 
 ## Agent Triage
 

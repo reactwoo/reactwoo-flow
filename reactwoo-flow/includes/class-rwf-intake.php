@@ -134,6 +134,72 @@ class RWF_Intake {
 					</label>
 				</div>
 
+				<div class="rwf-intake-grid">
+					<label>
+						<span><?php esc_html_e( 'WordPress Version', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_wordpress_version" />
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'WooCommerce Version', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_woocommerce_version" />
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'PHP Version', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_php_version" />
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Theme', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_theme" />
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Browser', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_browser" />
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Device', 'reactwoo-flow' ); ?></span>
+						<input type="text" name="rwf_device" />
+					</label>
+				</div>
+
+				<label>
+					<span><?php esc_html_e( 'Error Message', 'reactwoo-flow' ); ?></span>
+					<textarea name="rwf_error_message" rows="4"></textarea>
+				</label>
+
+				<label>
+					<span><?php esc_html_e( 'Steps to Reproduce', 'reactwoo-flow' ); ?></span>
+					<textarea name="rwf_steps_to_reproduce" rows="4"></textarea>
+				</label>
+
+				<div class="rwf-intake-grid">
+					<label>
+						<span><?php esc_html_e( 'Expected Behaviour', 'reactwoo-flow' ); ?></span>
+						<textarea name="rwf_expected_behaviour" rows="4"></textarea>
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Actual Behaviour', 'reactwoo-flow' ); ?></span>
+						<textarea name="rwf_actual_behaviour" rows="4"></textarea>
+					</label>
+				</div>
+
+				<div class="rwf-intake-grid">
+					<label>
+						<span><?php esc_html_e( 'Screenshot URLs', 'reactwoo-flow' ); ?></span>
+						<textarea name="rwf_screenshots" rows="3" placeholder="<?php esc_attr_e( 'One URL per line', 'reactwoo-flow' ); ?>"></textarea>
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Log Files or Log Excerpts', 'reactwoo-flow' ); ?></span>
+						<textarea name="rwf_log_files" rows="3"></textarea>
+					</label>
+				</div>
+
 				<button type="submit"><?php esc_html_e( 'Submit Request', 'reactwoo-flow' ); ?></button>
 			</form>
 		</div>
@@ -187,10 +253,42 @@ class RWF_Intake {
 		RWF_CPT::update_meta( $post_id, 'source', 'website_form' );
 		RWF_CPT::update_meta( $post_id, 'reporter', isset( $_POST['rwf_reporter'] ) ? wp_unslash( $_POST['rwf_reporter'] ) : '' );
 		RWF_CPT::update_meta( $post_id, 'customer_email', isset( $_POST['rwf_customer_email'] ) ? wp_unslash( $_POST['rwf_customer_email'] ) : '' );
-		RWF_CPT::update_meta( $post_id, 'plugin_version', isset( $_POST['rwf_plugin_version'] ) ? wp_unslash( $_POST['rwf_plugin_version'] ) : '' );
-		RWF_CPT::update_meta( $post_id, 'site_url', isset( $_POST['rwf_site_url'] ) ? wp_unslash( $_POST['rwf_site_url'] ) : '' );
+		self::save_optional_meta_fields(
+			$post_id,
+			array(
+				'plugin_version',
+				'site_url',
+				'wordpress_version',
+				'woocommerce_version',
+				'php_version',
+				'theme',
+				'browser',
+				'device',
+				'error_message',
+				'steps_to_reproduce',
+				'expected_behaviour',
+				'actual_behaviour',
+				'screenshots',
+				'log_files',
+			)
+		);
 
 		self::redirect_with_success();
+	}
+
+	/**
+	 * Save optional frontend fields into item meta.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $fields  Field keys without the rwf_ prefix.
+	 */
+	private static function save_optional_meta_fields( $post_id, $fields ) {
+		foreach ( $fields as $field_key ) {
+			$request_key = 'rwf_' . $field_key;
+			$value       = isset( $_POST[ $request_key ] ) ? wp_unslash( $_POST[ $request_key ] ) : '';
+
+			RWF_CPT::update_meta( $post_id, $field_key, $value );
+		}
 	}
 
 	/**
