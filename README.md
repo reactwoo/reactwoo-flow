@@ -22,6 +22,7 @@ This repository currently contains the Phase 1 MVP:
 - Controlled workflow status transitions with status history
 - Authenticated structured item context endpoint for future Cursor MCP consumption
 - Manual full context JSON export from item detail pages
+- Frontend shortcode intake form for website/support submissions
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
 
@@ -84,6 +85,22 @@ Item detail pages include controlled status transitions for moving work through 
 ## Installation
 
 Copy or symlink the `reactwoo-flow/` directory into a WordPress installation's `wp-content/plugins/` directory, then activate **ReactWoo Flow** from the WordPress admin.
+
+## Website Intake Form
+
+Add the shortcode below to a WordPress page to capture website/support submissions directly into the ReactWoo Flow inbox:
+
+```text
+[reactwoo_flow_intake]
+```
+
+Optional defaults:
+
+```text
+[reactwoo_flow_intake product="reactwoo_core" item_type="support_ticket" title="Send ReactWoo Support Request"]
+```
+
+Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`.
 
 ## Agent Triage
 

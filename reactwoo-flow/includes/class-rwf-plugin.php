@@ -43,6 +43,7 @@ final class RWF_Plugin {
 		RWF_Settings::init();
 		RWF_Admin::init();
 		RWF_REST::init();
+		RWF_Intake::init();
 	}
 
 	/**
@@ -55,6 +56,7 @@ final class RWF_Plugin {
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-ai.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-rest.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-admin.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-intake.php';
 	}
 
 	/**
