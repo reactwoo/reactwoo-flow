@@ -21,6 +21,7 @@ This repository currently contains the Phase 1 MVP:
 - Agent run history and JSON export for orchestration auditability
 - Controlled workflow status transitions with status history
 - Authenticated structured item context endpoint for future Cursor MCP consumption
+- Manual full context JSON export from item detail pages
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
 
@@ -69,6 +70,8 @@ GET /wp-json/reactwoo-flow/v1/items/{id}/context
 ```
 
 The response includes request fields, workflow status/history, agent analysis output, generated specification, development handoff metadata, agent run history, and future integration placeholders. The endpoint is authenticated and read-only; ReactWoo Flow prepares context while Cursor remains responsible for development execution.
+
+The same payload can be downloaded from an item detail page with **Export Context JSON**.
 
 ## Agent Run History
 

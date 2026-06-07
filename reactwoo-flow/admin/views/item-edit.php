@@ -89,6 +89,12 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					<?php esc_html_e( 'Export Agent Runs', 'reactwoo-flow' ); ?>
 				</a>
 			<?php endif; ?>
+			<a
+				class="button"
+				href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_item_context&post_id=' . $post_id ), 'rwf_export_item_context_' . $post_id ) ); ?>"
+			>
+				<?php esc_html_e( 'Export Context JSON', 'reactwoo-flow' ); ?>
+			</a>
 			<span class="rwf-analysis-status" aria-live="polite"></span>
 		<?php endif; ?>
 	</div>

@@ -30,6 +30,7 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
 		add_action( 'admin_post_rwf_export_agent_runs', array( __CLASS__, 'handle_export_agent_runs' ) );
+		add_action( 'admin_post_rwf_export_item_context', array( __CLASS__, 'handle_export_item_context' ) );
 	}
 
 	/**
@@ -439,6 +440,36 @@ class RWF_Admin {
 		$payload   = wp_json_encode( $runs, JSON_PRETTY_PRINT );
 		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
 		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-agent-runs.json' );
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $payload ) );
+
+		echo $payload; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
+	 * Download the full structured item context package as JSON.
+	 */
+	public static function handle_export_item_context() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export this item context.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_item_context_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$payload   = wp_json_encode( RWF_AI::build_cursor_context( $post_id ), JSON_PRETTY_PRINT );
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-context.json' );
 
 		nocache_headers();
 		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
