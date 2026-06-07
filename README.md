@@ -102,6 +102,8 @@ Optional defaults:
 
 Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`. The form captures product/type, reporter details, description, environment versions, browser/device, reproduction details, screenshots, and logs.
 
+Set **ReactWoo Flow > Settings > Intake > Intake Notification Email** to email an operator whenever a website intake item is created.
+
 ## Agent Triage
 
 1. Open **ReactWoo Flow > Settings**.

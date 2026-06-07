@@ -272,8 +272,39 @@ class RWF_Intake {
 				'log_files',
 			)
 		);
+		self::send_notification( $post_id );
 
 		self::redirect_with_success();
+	}
+
+	/**
+	 * Send optional notification email for new intake submissions.
+	 *
+	 * @param int $post_id Item post ID.
+	 */
+	private static function send_notification( $post_id ) {
+		$email = RWF_Settings::get( 'rwf_intake_notification_email' );
+
+		if ( '' === $email || ! is_email( $email ) ) {
+			return;
+		}
+
+		$subject = sprintf(
+			/* translators: %d: item ID. */
+			__( 'New ReactWoo Flow intake item #%d', 'reactwoo-flow' ),
+			$post_id
+		);
+		$body    = sprintf(
+			/* translators: 1: item ID, 2: title, 3: product, 4: type, 5: admin URL. */
+			__( "A new ReactWoo Flow item was submitted.\n\nID: %1\$d\nTitle: %2\$s\nProduct: %3\$s\nType: %4\$s\n\nOpen item: %5\$s", 'reactwoo-flow' ),
+			$post_id,
+			get_the_title( $post_id ),
+			RWF_CPT::option_label( RWF_CPT::get_products(), RWF_CPT::get_meta( $post_id, 'product' ) ),
+			RWF_CPT::option_label( RWF_CPT::get_item_types(), RWF_CPT::get_meta( $post_id, 'item_type' ) ),
+			admin_url( 'admin.php?page=' . RWF_Admin::PAGE_ITEM . '&id=' . $post_id )
+		);
+
+		wp_mail( $email, $subject, $body );
 	}
 
 	/**

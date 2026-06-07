@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $sections = array(
 	'agents'     => __( 'Agent Orchestration', 'reactwoo-flow' ),
 	'providers'  => __( 'Provider Connections', 'reactwoo-flow' ),
+	'intake'     => __( 'Intake', 'reactwoo-flow' ),
 	'jira'       => __( 'Jira (future)', 'reactwoo-flow' ),
 	'confluence' => __( 'Confluence (future)', 'reactwoo-flow' ),
 	'github'     => __( 'GitHub (future)', 'reactwoo-flow' ),
@@ -50,6 +51,8 @@ $sections = array(
 					</table>
 				<?php elseif ( 'providers' === $section_key ) : ?>
 					<p class="description"><?php esc_html_e( 'Provider credentials are execution engines only. ReactWoo Flow owns orchestration and context; Cursor is the preferred future development executor through MCP.', 'reactwoo-flow' ); ?></p>
+				<?php elseif ( 'intake' === $section_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Configure website/support intake behavior before items enter triage.', 'reactwoo-flow' ); ?></p>
 				<?php else : ?>
 					<p class="description"><?php esc_html_e( 'Stored now as planning metadata. Integration logic will be added in a future phase.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>

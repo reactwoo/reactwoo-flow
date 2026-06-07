@@ -123,6 +123,12 @@ class RWF_Settings {
 				'section'     => 'providers',
 				'description' => __( 'Future bridge endpoint for handing structured tasks to Cursor.', 'reactwoo-flow' ),
 			),
+			'rwf_intake_notification_email' => array(
+				'label'       => __( 'Intake Notification Email', 'reactwoo-flow' ),
+				'type'        => 'email',
+				'section'     => 'intake',
+				'description' => __( 'Optional. New website intake submissions will send a notification to this address.', 'reactwoo-flow' ),
+			),
 			'rwf_jira_url'             => array(
 				'label'   => __( 'Jira URL', 'reactwoo-flow' ),
 				'type'    => 'url',
