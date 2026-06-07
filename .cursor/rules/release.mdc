@@ -1,0 +1,31 @@
+---
+description: ReactWoo Flow release workflow — commit, tag, single push, CI publish
+globs:
+  - reactwoo-flow/**
+  - package.json
+  - scripts/**
+  - CHANGELOG.md
+  - docs/releases-and-git-tags.md
+alwaysApply: false
+---
+
+# ReactWoo Flow release (agents)
+
+When shipping **reactwoo-flow**, follow `docs/releases-and-git-tags.md`.
+
+## Required pattern
+
+1. Bump `RWF_VERSION`, plugin header, and `readme.txt` Stable tag.
+2. `git commit` — standalone command.
+3. `git tag -a "vVERSION" -m "…"` — **standalone** command (never chained with push on Windows).
+4. `git push origin main "vVERSION"` — **one** push (branch + tag).
+
+## Do not
+
+- Chain `commit && tag && push` in one line on Windows.
+- Run local `npm run package:zip` before tag push unless the user needs the file immediately — **tag push runs `publish-update.yml`** (R2 + API).
+- Commit `*.zip` files.
+
+## CI
+
+Tag `v*` triggers `.github/workflows/publish-update.yml` — uploads `reactwoo-flow.zip` to R2 and publishes via ReactWoo API.

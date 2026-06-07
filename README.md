@@ -14,7 +14,7 @@ This repository currently contains the Phase 1 MVP:
 - Inbox with filters and bulk actions
 - Item detail screen for request, environment, attachment, agent execution, analysis output, specification, and future integration fields
 - Settings page for agent provider/model defaults plus provider, Jira, Confluence, and GitHub metadata
-- Secured REST endpoints for "Run Triage Agent", "Generate Specification", and "Prepare Cursor Handoff"
+- Secured REST endpoints for "Run Triage Agent", "Generate Specification", "Generate Release Notes", and "Prepare Cursor Handoff"
 - Prompt templates for agent item analysis, specification generation, and Cursor development handoff
 - Editable Markdown specification storage and export
 - Cursor handoff JSON package preparation and export
@@ -25,6 +25,12 @@ This repository currently contains the Phase 1 MVP:
 - Frontend shortcode intake form for website/support submissions
 
 Jira, GitHub, Confluence, Cursor MCP, QA, UX, and release-management integrations are intentionally placeholders for future phases.
+
+## Build and release
+
+- **Local zip:** `npm run package:zip` from the repo root (packages the inner `reactwoo-flow/` plugin folder).
+- **CI publish:** push annotated tag `v*` — GitHub Actions uploads to R2 and registers the release via ReactWoo API (`slug`: `reactwoo-flow`).
+- **Docs:** `docs/releases-and-git-tags.md`
 
 ## Architecture
 
@@ -100,7 +106,7 @@ Optional defaults:
 [reactwoo_flow_intake product="reactwoo_core" item_type="support_ticket" title="Send ReactWoo Support Request"]
 ```
 
-Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`. The form captures product/type, reporter details, description, environment versions, browser/device, reproduction details, screenshots, and logs.
+Submissions create `rwf_item` posts with source `Website Form`, medium priority, and workflow status `Needs Triage`. The form captures product/type, reporter details, description, environment versions, browser/device, reproduction details, screenshots, logs, and optional file uploads (images and log files).
 
 Set **ReactWoo Flow > Settings > Intake > Intake Notification Email** to email an operator whenever a website intake item is created.
 
@@ -114,3 +120,7 @@ Set **ReactWoo Flow > Settings > Intake > Intake Notification Email** to email a
 ## Specification Generation
 
 After saving an item, click **Generate Specification** on the item detail screen. ReactWoo Flow stores the generated specification in WordPress as editable Markdown and exposes an **Export Markdown** button when a specification exists.
+
+## Release Notes
+
+Click **Generate Release Notes** on an item that has been triaged (and ideally has a specification). The release agent produces customer-ready Markdown stored on the item with an **Export Release Notes** download when complete. Configure the release agent provider/model under **Settings** (OpenAI by default; Anthropic supported when an API key is set).

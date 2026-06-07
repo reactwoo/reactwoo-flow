@@ -70,7 +70,7 @@ class RWF_Intake {
 				</div>
 			<?php endif; ?>
 
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<h2><?php echo esc_html( $atts['title'] ); ?></h2>
 				<?php wp_nonce_field( 'rwf_submit_intake' ); ?>
 				<input type="hidden" name="action" value="rwf_submit_intake" />
@@ -191,12 +191,26 @@ class RWF_Intake {
 				<div class="rwf-intake-grid">
 					<label>
 						<span><?php esc_html_e( 'Screenshot URLs', 'reactwoo-flow' ); ?></span>
-						<textarea name="rwf_screenshots" rows="3" placeholder="<?php esc_attr_e( 'One URL per line', 'reactwoo-flow' ); ?>"></textarea>
+						<textarea name="rwf_screenshots" rows="3" placeholder="<?php esc_attr_e( 'One URL per line (optional if uploading files below)', 'reactwoo-flow' ); ?>"></textarea>
 					</label>
 
 					<label>
+						<span><?php esc_html_e( 'Upload Screenshots', 'reactwoo-flow' ); ?></span>
+						<input type="file" name="rwf_screenshot_files[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple />
+						<span class="rwf-intake-hint"><?php esc_html_e( 'Up to 5 images (JPEG, PNG, GIF, WebP).', 'reactwoo-flow' ); ?></span>
+					</label>
+				</div>
+
+				<div class="rwf-intake-grid">
+					<label>
 						<span><?php esc_html_e( 'Log Files or Log Excerpts', 'reactwoo-flow' ); ?></span>
 						<textarea name="rwf_log_files" rows="3"></textarea>
+					</label>
+
+					<label>
+						<span><?php esc_html_e( 'Upload Log Files', 'reactwoo-flow' ); ?></span>
+						<input type="file" name="rwf_log_file_uploads[]" accept=".txt,.log,.csv,text/plain,text/csv" multiple />
+						<span class="rwf-intake-hint"><?php esc_html_e( 'Up to 3 text or log files.', 'reactwoo-flow' ); ?></span>
 					</label>
 				</div>
 
@@ -272,6 +286,7 @@ class RWF_Intake {
 				'log_files',
 			)
 		);
+		RWF_Uploads::handle_intake_uploads( $post_id );
 		self::send_notification( $post_id );
 
 		self::redirect_with_success();

@@ -66,3 +66,9 @@
 	left: -9999px;
 	position: absolute;
 }
+
+.rwf-intake-hint {
+	color: #646970;
+	font-size: 12px;
+	font-weight: 400;
+}

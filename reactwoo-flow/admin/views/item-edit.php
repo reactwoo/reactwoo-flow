@@ -60,11 +60,26 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 			</button>
 			<button
 				type="button"
+				class="button button-secondary rwf-generate-release-notes-button"
+				data-item-id="<?php echo esc_attr( $post_id ); ?>"
+			>
+				<?php esc_html_e( 'Generate Release Notes', 'reactwoo-flow' ); ?>
+			</button>
+			<button
+				type="button"
 				class="button button-secondary rwf-prepare-handoff-button"
 				data-item-id="<?php echo esc_attr( $post_id ); ?>"
 			>
 				<?php esc_html_e( 'Prepare Cursor Handoff', 'reactwoo-flow' ); ?>
 			</button>
+			<?php if ( RWF_CPT::is_release_notes_generated( $post_id ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_release_notes&post_id=' . $post_id ), 'rwf_export_release_notes_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export Release Notes', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
 			<?php if ( RWF_CPT::is_specification_generated( $post_id ) ) : ?>
 				<a
 					class="button"
@@ -121,6 +136,20 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					/* translators: %s: handoff preparation date. */
 					__( 'Cursor development handoff prepared %s.', 'reactwoo-flow' ),
 					RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' )
+				)
+			);
+			?>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $is_existing && RWF_CPT::is_release_notes_generated( $post_id ) ) : ?>
+		<div class="rwf-spec-banner">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: release notes generation date. */
+					__( 'Release notes generated %s.', 'reactwoo-flow' ),
+					RWF_CPT::get_meta( $post_id, 'release_notes_generated_at' )
 				)
 			);
 			?>
@@ -278,6 +307,10 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					<p class="description"><?php esc_html_e( 'ReactWoo Flow stores orchestration metadata for each agent run: agent type, provider, model, prompt template, context payload, output, and execution status.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
+				<?php if ( 'release_notes' === $group_key && ! $is_existing ) : ?>
+					<p class="description"><?php esc_html_e( 'Save the item before generating release notes.', 'reactwoo-flow' ); ?></p>
+				<?php endif; ?>
+
 				<?php if ( 'specification' === $group_key && ! $is_existing ) : ?>
 					<p class="description"><?php esc_html_e( 'Save the item before generating a specification.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
@@ -304,7 +337,7 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 
 						<?php if ( in_array( $field_key, array( 'screenshots', 'log_files' ), true ) ) : ?>
 							<button class="button rwf-media-button" type="button" data-rwf-media-target="rwf_<?php echo esc_attr( $field_key ); ?>">
-								<?php esc_html_e( 'Add Media URL', 'reactwoo-flow' ); ?>
+								<?php echo 'screenshots' === $field_key ? esc_html__( 'Add from Media Library', 'reactwoo-flow' ) : esc_html__( 'Add Media URL', 'reactwoo-flow' ); ?>
 							</button>
 						<?php endif; ?>
 					<?php endforeach; ?>

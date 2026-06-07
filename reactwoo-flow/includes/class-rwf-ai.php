@@ -50,6 +50,24 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate release notes and persist them to the item.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return string|WP_Error
+	 */
+	public static function generate_release_notes_and_save( $post_id ) {
+		$release_notes = self::generate_release_notes( $post_id );
+
+		if ( is_wp_error( $release_notes ) ) {
+			return $release_notes;
+		}
+
+		self::save_release_notes( $post_id, $release_notes );
+
+		return $release_notes;
+	}
+
+	/**
 	 * Prepare a development-agent handoff package and persist it to the item.
 	 *
 	 * @param int $post_id Item post ID.
@@ -164,6 +182,39 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate Markdown release notes through the release agent.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return string|WP_Error
+	 */
+	public static function generate_release_notes( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		$agent = RWF_Agent::execute(
+			array(
+				'name'            => __( 'Release Notes Generator', 'reactwoo-flow' ),
+				'agent_type'      => 'release',
+				'prompt_template' => 'generate-release-notes.md',
+				'input_context'   => self::build_release_context( $post_id ),
+				'timeout'         => 60,
+			)
+		);
+
+		if ( is_wp_error( $agent ) ) {
+			self::save_agent_execution( $post_id, 'release', $agent->get_error_data() );
+			return $agent;
+		}
+
+		self::save_agent_execution( $post_id, 'release', $agent );
+
+		return trim( (string) $agent['output'] );
+	}
+
+	/**
 	 * Build the item context sent to an agent.
 	 *
 	 * @param int $post_id Item post ID.
@@ -180,7 +231,7 @@ class RWF_AI {
 		);
 
 		foreach ( RWF_CPT::get_field_groups() as $group_key => $group ) {
-			if ( in_array( $group_key, array( 'agent_execution', 'ai_analysis', 'specification', 'integrations' ), true ) ) {
+			if ( in_array( $group_key, array( 'agent_execution', 'ai_analysis', 'specification', 'release_notes', 'integrations' ), true ) ) {
 				continue;
 			}
 
@@ -233,6 +284,30 @@ class RWF_AI {
 			'wordpress_post_id' => $post_id,
 			'created_at'        => $post ? get_post_time( 'c', true, $post ) : '',
 			'ai_analyzed'       => RWF_CPT::is_ai_analyzed( $post_id ) ? 'yes' : 'no',
+		);
+
+		return $context;
+	}
+
+	/**
+	 * Build context sent to the release notes prompt.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_release_context( $post_id ) {
+		$post    = get_post( $post_id );
+		$context = self::build_specification_context( $post_id );
+
+		$context['specification_markdown'] = RWF_CPT::get_meta( $post_id, 'specification_markdown' );
+		$context['release_metadata']      = array(
+			'release_version' => RWF_CPT::get_meta( $post_id, 'release_version' ),
+			'github_branch'   => RWF_CPT::get_meta( $post_id, 'github_branch' ),
+			'pr_url'          => RWF_CPT::get_meta( $post_id, 'pr_url' ),
+			'jira_id'         => RWF_CPT::get_meta( $post_id, 'jira_id' ),
+			'product_label'   => RWF_CPT::option_label( RWF_CPT::get_products(), RWF_CPT::get_meta( $post_id, 'product' ) ),
+			'item_type_label' => RWF_CPT::option_label( RWF_CPT::get_item_types(), RWF_CPT::get_meta( $post_id, 'item_type' ) ),
+			'created_at'      => $post ? get_post_time( 'c', true, $post ) : '',
 		);
 
 		return $context;
@@ -319,6 +394,11 @@ class RWF_AI {
 				'generated_at' => RWF_CPT::get_meta( $post_id, 'specification_generated_at' ),
 				'markdown'     => RWF_CPT::get_meta( $post_id, 'specification_markdown' ),
 			),
+			'release_notes'        => array(
+				'generated'    => RWF_CPT::is_release_notes_generated( $post_id ),
+				'generated_at' => RWF_CPT::get_meta( $post_id, 'release_notes_generated_at' ),
+				'markdown'     => RWF_CPT::get_meta( $post_id, 'release_notes_markdown' ),
+			),
 			'development_handoff'  => array(
 				'prepared'    => RWF_CPT::is_development_handoff_prepared( $post_id ),
 				'prepared_at' => RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' ),
@@ -387,6 +467,17 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'ai_analyzed', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'ai_analyzed_at', current_time( 'mysql' ) );
 
+		$current_status = RWF_CPT::get_meta( $post_id, 'status' );
+		$current_status = $current_status ? $current_status : 'new';
+
+		if ( in_array( $current_status, array( 'new', 'needs_triage' ), true ) ) {
+			RWF_CPT::transition_status(
+				$post_id,
+				'confirmed',
+				__( 'Auto-advanced after successful triage.', 'reactwoo-flow' )
+			);
+		}
+
 		if ( ! empty( $analysis['suggested_priority'] ) ) {
 			$priority_key = self::option_key_from_label( RWF_CPT::get_priorities(), $analysis['suggested_priority'] );
 			if ( $priority_key ) {
@@ -413,6 +504,19 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'specification_raw_response', $specification );
 		RWF_CPT::update_meta( $post_id, 'specification_generated', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'specification_generated_at', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Save generated release notes fields.
+	 *
+	 * @param int    $post_id       Item post ID.
+	 * @param string $release_notes Release notes Markdown.
+	 */
+	public static function save_release_notes( $post_id, $release_notes ) {
+		RWF_CPT::update_meta( $post_id, 'release_notes_markdown', $release_notes );
+		RWF_CPT::update_meta( $post_id, 'release_notes_raw_response', $release_notes );
+		RWF_CPT::update_meta( $post_id, 'release_notes_generated', 'yes' );
+		RWF_CPT::update_meta( $post_id, 'release_notes_generated_at', current_time( 'mysql' ) );
 	}
 
 	/**

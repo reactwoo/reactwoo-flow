@@ -1,0 +1,14 @@
+{
+  "name": "reactwoo-flow-packaging",
+  "private": true,
+  "reactwooBuild": {
+    "pluginFolder": "reactwoo-flow",
+    "zipFile": "reactwoo-flow.zip",
+    "pluginSlug": "reactwoo-flow",
+    "sourceDir": "reactwoo-flow",
+    "mainPhp": "reactwoo-flow.php"
+  },
+  "scripts": {
+    "package:zip": "python scripts/package_zip.py"
+  }
+}

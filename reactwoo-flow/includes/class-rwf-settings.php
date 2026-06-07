@@ -117,6 +117,12 @@ class RWF_Settings {
 				'section'           => 'providers',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
 			),
+			'rwf_anthropic_api_key'    => array(
+				'label'             => __( 'Anthropic API Key', 'reactwoo-flow' ),
+				'type'              => 'password',
+				'section'           => 'providers',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
+			),
 			'rwf_cursor_mcp_endpoint'  => array(
 				'label'       => __( 'Cursor MCP Bridge Endpoint', 'reactwoo-flow' ),
 				'type'        => 'url',

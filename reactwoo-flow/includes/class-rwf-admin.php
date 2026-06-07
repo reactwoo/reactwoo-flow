@@ -28,6 +28,7 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_transition_status', array( __CLASS__, 'handle_transition_status' ) );
 		add_action( 'admin_post_rwf_bulk_items', array( __CLASS__, 'handle_bulk_items' ) );
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
+		add_action( 'admin_post_rwf_export_release_notes', array( __CLASS__, 'handle_export_release_notes' ) );
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
 		add_action( 'admin_post_rwf_export_agent_runs', array( __CLASS__, 'handle_export_agent_runs' ) );
 		add_action( 'admin_post_rwf_export_item_context', array( __CLASS__, 'handle_export_item_context' ) );
@@ -40,7 +41,7 @@ class RWF_Admin {
 		add_menu_page(
 			__( 'ReactWoo Flow', 'reactwoo-flow' ),
 			__( 'ReactWoo Flow', 'reactwoo-flow' ),
-			'edit_posts',
+			'edit_rwf_items',
 			self::PAGE_DASHBOARD,
 			array( __CLASS__, 'render_dashboard' ),
 			'dashicons-networking',
@@ -51,7 +52,7 @@ class RWF_Admin {
 			self::PAGE_DASHBOARD,
 			__( 'Dashboard', 'reactwoo-flow' ),
 			__( 'Dashboard', 'reactwoo-flow' ),
-			'edit_posts',
+			'edit_rwf_items',
 			self::PAGE_DASHBOARD,
 			array( __CLASS__, 'render_dashboard' )
 		);
@@ -60,7 +61,7 @@ class RWF_Admin {
 			self::PAGE_DASHBOARD,
 			__( 'Inbox', 'reactwoo-flow' ),
 			__( 'Inbox', 'reactwoo-flow' ),
-			'edit_posts',
+			'edit_rwf_items',
 			self::PAGE_INBOX,
 			array( __CLASS__, 'render_inbox' )
 		);
@@ -69,7 +70,7 @@ class RWF_Admin {
 			null,
 			__( 'Flow Item', 'reactwoo-flow' ),
 			__( 'Flow Item', 'reactwoo-flow' ),
-			'edit_posts',
+			'edit_rwf_items',
 			self::PAGE_ITEM,
 			array( __CLASS__, 'render_item' )
 		);
@@ -78,7 +79,7 @@ class RWF_Admin {
 			self::PAGE_DASHBOARD,
 			__( 'Settings', 'reactwoo-flow' ),
 			__( 'Settings', 'reactwoo-flow' ),
-			'manage_options',
+			RWF_Capabilities::CAP_MANAGE,
 			self::PAGE_SETTINGS,
 			array( __CLASS__, 'render_settings' )
 		);
@@ -131,6 +132,10 @@ class RWF_Admin {
 				'handoffLabel'      => __( 'Prepare Cursor Handoff', 'reactwoo-flow' ),
 				'handoffErrorLabel' => __( 'Cursor handoff preparation failed.', 'reactwoo-flow' ),
 				'handoffDoneLabel'  => __( 'Cursor handoff package saved. Refreshing...', 'reactwoo-flow' ),
+				'generatingReleaseNotes' => __( 'Generating release notes...', 'reactwoo-flow' ),
+				'generateReleaseNotesLabel' => __( 'Generate Release Notes', 'reactwoo-flow' ),
+				'releaseNotesErrorLabel' => __( 'Release notes generation failed. Check settings and try again.', 'reactwoo-flow' ),
+				'releaseNotesDoneLabel' => __( 'Release notes saved. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}
@@ -165,7 +170,7 @@ class RWF_Admin {
 			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
 		}
 
-		if ( $post_id && ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( $post_id && ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to edit this item.', 'reactwoo-flow' ) );
 		}
 
@@ -187,11 +192,11 @@ class RWF_Admin {
 
 		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 
-		if ( $post_id && ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( $post_id && ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to edit this item.', 'reactwoo-flow' ) );
 		}
 
-		if ( ! $post_id && ! current_user_can( 'edit_posts' ) ) {
+		if ( ! $post_id && ! RWF_Capabilities::can_edit_items() ) {
 			wp_die( esc_html__( 'You do not have permission to create items.', 'reactwoo-flow' ) );
 		}
 
@@ -244,7 +249,7 @@ class RWF_Admin {
 
 		check_admin_referer( 'rwf_transition_status_' . $post_id );
 
-		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to transition this item.', 'reactwoo-flow' ) );
 		}
 
@@ -290,7 +295,7 @@ class RWF_Admin {
 	public static function handle_bulk_items() {
 		check_admin_referer( 'rwf_bulk_items' );
 
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! RWF_Capabilities::can_edit_items() ) {
 			wp_die( esc_html__( 'You do not have permission to update items.', 'reactwoo-flow' ) );
 		}
 
@@ -300,7 +305,7 @@ class RWF_Admin {
 		$errors      = 0;
 
 		foreach ( $item_ids as $item_id ) {
-			if ( ! $item_id || ! current_user_can( 'edit_post', $item_id ) ) {
+			if ( ! $item_id || ! RWF_Capabilities::can_edit_item( $item_id ) ) {
 				continue;
 			}
 
@@ -348,7 +353,7 @@ class RWF_Admin {
 	public static function handle_export_specification() {
 		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 
-		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to export this specification.', 'reactwoo-flow' ) );
 		}
 
@@ -377,12 +382,46 @@ class RWF_Admin {
 	}
 
 	/**
+	 * Download generated release notes as Markdown.
+	 */
+	public static function handle_export_release_notes() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export these release notes.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_release_notes_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$markdown = RWF_CPT::get_meta( $post_id, 'release_notes_markdown' );
+		if ( '' === trim( $markdown ) ) {
+			wp_die( esc_html__( 'This item does not have release notes to export.', 'reactwoo-flow' ) );
+		}
+
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-release-notes.md' );
+
+		nocache_headers();
+		header( 'Content-Type: text/markdown; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $markdown ) );
+
+		echo $markdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
 	 * Download a prepared development handoff package as JSON.
 	 */
 	public static function handle_export_development_handoff() {
 		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 
-		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to export this development handoff.', 'reactwoo-flow' ) );
 		}
 
@@ -421,7 +460,7 @@ class RWF_Admin {
 	public static function handle_export_agent_runs() {
 		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 
-		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to export agent runs for this item.', 'reactwoo-flow' ) );
 		}
 
@@ -456,7 +495,7 @@ class RWF_Admin {
 	public static function handle_export_item_context() {
 		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 
-		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
 			wp_die( esc_html__( 'You do not have permission to export this item context.', 'reactwoo-flow' ) );
 		}
 

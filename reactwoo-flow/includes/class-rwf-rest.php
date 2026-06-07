@@ -93,6 +93,23 @@ class RWF_REST {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/items/(?P<id>\d+)/generate-release-notes',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'generate_release_notes' ),
+				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
+				'args'                => array(
+					'id' => array(
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -104,7 +121,7 @@ class RWF_REST {
 	public static function can_analyse_item( $request ) {
 		$post_id = absint( $request['id'] );
 
-		return $post_id && current_user_can( 'edit_post', $post_id );
+		return $post_id && RWF_Capabilities::can_edit_item( $post_id );
 	}
 
 	/**
@@ -116,7 +133,7 @@ class RWF_REST {
 	public static function can_read_item( $request ) {
 		$post_id = absint( $request['id'] );
 
-		return $post_id && current_user_can( 'edit_post', $post_id );
+		return $post_id && RWF_Capabilities::can_edit_item( $post_id );
 	}
 
 	/**
@@ -186,6 +203,30 @@ class RWF_REST {
 				'item_id'      => $post_id,
 				'specification' => $result,
 				'generated_at' => RWF_CPT::get_meta( $post_id, 'specification_generated_at' ),
+			)
+		);
+	}
+
+	/**
+	 * Generate Markdown release notes for an item.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function generate_release_notes( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_AI::generate_release_notes_and_save( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'      => true,
+				'item_id'      => $post_id,
+				'release_notes' => $result,
+				'generated_at' => RWF_CPT::get_meta( $post_id, 'release_notes_generated_at' ),
 			)
 		);
 	}

@@ -1,0 +1,35 @@
+---
+description: ReactWoo Flow internal ops plugin — orchestration, agents, MVP scope
+globs:
+  - reactwoo-flow/**
+  - PLAN.md
+  - CHANGELOG.md
+  - AGENTS.md
+alwaysApply: false
+---
+
+# ReactWoo Flow
+
+## Product boundary
+
+- Internal WordPress **orchestration platform** for intake, triage, specifications, agent routing, and release coordination.
+- Does **not** replace Jira, GitHub, or Cursor. Does **not** execute development work remotely (Cursor MCP is prepare-only until bridge ships).
+- Single CPT: `rwf_item`. All item data in post meta (`_rwf_*`).
+
+## Code conventions
+
+- Provider adapters implement `RWF_Provider_Interface` in `includes/providers/`.
+- Agent workflows go through `RWF_Agent::execute()` — never call OpenAI/Anthropic directly from admin or REST.
+- Prompt templates are Markdown files in `prompts/`; reference by filename in agent args.
+- Capabilities: `edit_rwf_items`, `manage_rwf` — not generic `edit_posts`.
+- Plugin install folder: `reactwoo-flow/` inside repo root.
+
+## MVP scope (do not expand without plan update)
+
+In scope: dashboard, inbox, item CRUD, environment capture, attachments, AI triage, specs, release notes, handoff prep, REST context export, intake shortcode.
+
+Out of scope until planned: Jira/GitHub/Confluence integration, Cursor MCP execution, Playwright QA, UX agent pipeline.
+
+## After implementation
+
+Update `CHANGELOG.md` + `PLAN.md`, bump `RWF_VERSION` and plugin header, commit, tag `v*`, push. Tag push triggers CI publish; skip local zip unless needed immediately.

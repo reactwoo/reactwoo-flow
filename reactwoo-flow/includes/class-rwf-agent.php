@@ -27,7 +27,7 @@ class RWF_Agent {
 		return array(
 			'openai'     => __( 'OpenAI / GPT-compatible', 'reactwoo-flow' ),
 			'cursor_mcp' => __( 'Cursor MCP Bridge (future)', 'reactwoo-flow' ),
-			'anthropic'  => __( 'Anthropic (future)', 'reactwoo-flow' ),
+			'anthropic'  => __( 'Anthropic Claude', 'reactwoo-flow' ),
 			'manual'     => __( 'Manual / External Agent', 'reactwoo-flow' ),
 		);
 	}
@@ -90,23 +90,57 @@ class RWF_Agent {
 			return $agent;
 		}
 
+		$provider = self::get_provider( $agent['provider'] );
+
+		if ( ! $provider ) {
+			$agent['status'] = self::STATUS_FAILED;
+			$agent['error']  = __( 'The selected provider is not registered in this build.', 'reactwoo-flow' );
+
+			return new WP_Error( 'rwf_provider_not_registered', $agent['error'], $agent );
+		}
+
+		if ( ! $provider->is_executable() ) {
+			return $provider->execute( $agent );
+		}
+
 		$agent['status'] = self::STATUS_RUNNING;
 
-		if ( 'openai' === $agent['provider'] ) {
-			return self::execute_openai( $agent );
+		return $provider->execute( $agent );
+	}
+
+	/**
+	 * Resolve a provider adapter by identifier.
+	 *
+	 * @param string $provider_id Provider key.
+	 * @return RWF_Provider_Interface|null
+	 */
+	public static function get_provider( $provider_id ) {
+		foreach ( self::get_providers_registry() as $provider ) {
+			if ( $provider->get_id() === $provider_id ) {
+				return $provider;
+			}
 		}
 
-		if ( 'cursor_mcp' === $agent['provider'] ) {
-			$agent['status'] = self::STATUS_FAILED;
-			$agent['error']  = __( 'Cursor MCP execution is planned for a future bridge. ReactWoo Flow can prepare the context payload now, but cannot send it to Cursor yet.', 'reactwoo-flow' );
+		return null;
+	}
 
-			return new WP_Error( 'rwf_cursor_mcp_not_connected', $agent['error'], $agent );
+	/**
+	 * Registered provider adapters.
+	 *
+	 * @return RWF_Provider_Interface[]
+	 */
+	private static function get_providers_registry() {
+		static $providers = null;
+
+		if ( null === $providers ) {
+			$providers = array(
+				new RWF_Provider_OpenAI(),
+				new RWF_Provider_Anthropic(),
+				new RWF_Provider_Cursor_MCP(),
+			);
 		}
 
-		$agent['status'] = self::STATUS_FAILED;
-		$agent['error']  = __( 'The selected provider is not executable in this MVP.', 'reactwoo-flow' );
-
-		return new WP_Error( 'rwf_provider_not_executable', $agent['error'], $agent );
+		return $providers;
 	}
 
 	/**
@@ -137,7 +171,7 @@ class RWF_Agent {
 			'provider'        => $provider,
 			'model'           => $model,
 			'prompt_template' => $prompt_template,
-			'prompt'          => self::get_prompt( $prompt_template ),
+			'prompt'          => self::load_prompt_template( $prompt_template ),
 			'input_context'   => isset( $args['input_context'] ) && is_array( $args['input_context'] ) ? $args['input_context'] : array(),
 			'response_format' => isset( $args['response_format'] ) && is_array( $args['response_format'] ) ? $args['response_format'] : array(),
 			'temperature'     => isset( $args['temperature'] ) ? (float) $args['temperature'] : 0.2,
@@ -151,98 +185,12 @@ class RWF_Agent {
 	}
 
 	/**
-	 * Execute an agent via OpenAI chat completions.
-	 *
-	 * @param array $agent Prepared agent.
-	 * @return array|WP_Error
-	 */
-	private static function execute_openai( $agent ) {
-		$api_key = RWF_Settings::get( 'rwf_openai_api_key' );
-		if ( '' === $api_key ) {
-			$agent['status'] = self::STATUS_FAILED;
-			$agent['error']  = __( 'Add an API key for the OpenAI / GPT-compatible provider before running this agent.', 'reactwoo-flow' );
-
-			return new WP_Error( 'rwf_missing_provider_api_key', $agent['error'], $agent );
-		}
-
-		$agent['started_at'] = current_time( 'mysql' );
-		$payload             = array(
-			'model'       => $agent['model'],
-			'temperature' => $agent['temperature'],
-			'messages'    => array(
-				array(
-					'role'    => 'system',
-					'content' => $agent['prompt'],
-				),
-				array(
-					'role'    => 'user',
-					'content' => wp_json_encode( $agent['input_context'], JSON_PRETTY_PRINT ),
-				),
-			),
-		);
-
-		if ( ! empty( $agent['response_format'] ) ) {
-			$payload['response_format'] = $agent['response_format'];
-		}
-
-		$response = wp_remote_post(
-			'https://api.openai.com/v1/chat/completions',
-			array(
-				'timeout' => $agent['timeout'],
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $api_key,
-					'Content-Type'  => 'application/json',
-				),
-				'body'    => wp_json_encode( $payload ),
-			)
-		);
-
-		if ( is_wp_error( $response ) ) {
-			$agent['status'] = self::STATUS_FAILED;
-			$agent['error']  = $response->get_error_message();
-
-			return new WP_Error( $response->get_error_code(), $response->get_error_message(), $agent );
-		}
-
-		$status_code = (int) wp_remote_retrieve_response_code( $response );
-		$body        = (string) wp_remote_retrieve_body( $response );
-
-		if ( $status_code < 200 || $status_code >= 300 ) {
-			$agent['status'] = self::STATUS_FAILED;
-			$agent['error']  = sprintf(
-				/* translators: %d: HTTP status code. */
-				__( 'Provider request failed with status %d.', 'reactwoo-flow' ),
-				$status_code
-			);
-			$agent['raw_response'] = $body;
-
-			return new WP_Error( 'rwf_provider_error', $agent['error'], $agent );
-		}
-
-		$decoded = json_decode( $body, true );
-		if ( ! is_array( $decoded ) || empty( $decoded['choices'][0]['message']['content'] ) ) {
-			$agent['status']       = self::STATUS_FAILED;
-			$agent['error']        = __( 'Provider returned an unexpected response.', 'reactwoo-flow' );
-			$agent['raw_response'] = $body;
-
-			return new WP_Error( 'rwf_provider_invalid_response', $agent['error'], $agent );
-		}
-
-		$agent['status']       = self::STATUS_SUCCEEDED;
-		$agent['output']       = (string) $decoded['choices'][0]['message']['content'];
-		$agent['raw_response'] = $body;
-		$agent['completed_at'] = current_time( 'mysql' );
-
-		return $agent;
-	}
-
-	/**
 	 * Read a prompt template.
 	 *
 	 * @param string $file_name Prompt file name.
 	 * @return string
 	 */
-	private static function get_prompt( $file_name ) {
+	public static function load_prompt_template( $file_name ) {
 		if ( '' !== $file_name ) {
 			$prompt_file = RWF_PLUGIN_DIR . 'prompts/' . sanitize_file_name( $file_name );
 
