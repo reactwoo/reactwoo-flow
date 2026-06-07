@@ -363,6 +363,40 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, $scope . '_agent_output', isset( $agent['output'] ) ? $agent['output'] : '' );
 		RWF_CPT::update_meta( $post_id, $scope . '_agent_error', isset( $agent['error'] ) ? $agent['error'] : '' );
 		RWF_CPT::update_meta( $post_id, $scope . '_agent_execution', wp_json_encode( $agent, JSON_PRETTY_PRINT ) );
+		self::append_agent_run( $post_id, $scope, $agent );
+	}
+
+	/**
+	 * Append a compact historical agent run record.
+	 *
+	 * @param int    $post_id Item post ID.
+	 * @param string $scope   Workflow scope.
+	 * @param array  $agent   Agent execution data.
+	 */
+	private static function append_agent_run( $post_id, $scope, $agent ) {
+		$runs   = RWF_CPT::get_agent_runs( $post_id );
+		$runs[] = array(
+			'run_id'          => uniqid( 'rwf_run_', true ),
+			'scope'           => $scope,
+			'name'            => isset( $agent['name'] ) ? $agent['name'] : '',
+			'agent_type'      => isset( $agent['agent_type'] ) ? $agent['agent_type'] : '',
+			'provider'        => isset( $agent['provider'] ) ? $agent['provider'] : '',
+			'model'           => isset( $agent['model'] ) ? $agent['model'] : '',
+			'prompt_template' => isset( $agent['prompt_template'] ) ? $agent['prompt_template'] : '',
+			'status'          => isset( $agent['status'] ) ? $agent['status'] : '',
+			'error'           => isset( $agent['error'] ) ? $agent['error'] : '',
+			'started_at'      => isset( $agent['started_at'] ) ? $agent['started_at'] : '',
+			'completed_at'    => isset( $agent['completed_at'] ) ? $agent['completed_at'] : '',
+			'recorded_at'     => current_time( 'mysql' ),
+			'input_context'   => isset( $agent['input_context'] ) ? $agent['input_context'] : array(),
+			'output'          => isset( $agent['output'] ) ? $agent['output'] : '',
+		);
+
+		if ( count( $runs ) > 50 ) {
+			$runs = array_slice( $runs, -50 );
+		}
+
+		RWF_CPT::update_meta( $post_id, 'agent_runs', wp_json_encode( $runs, JSON_PRETTY_PRINT ) );
 	}
 
 	/**

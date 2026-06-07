@@ -542,7 +542,7 @@ class RWF_CPT {
 	 * @return array
 	 */
 	public static function get_all_field_keys() {
-		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution', 'development_agent_execution', 'development_handoff_prepared', 'development_handoff_prepared_at' );
+		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution', 'development_agent_execution', 'development_handoff_prepared', 'development_handoff_prepared_at', 'agent_runs' );
 
 		foreach ( self::get_field_groups() as $group ) {
 			foreach ( array_keys( $group['fields'] ) as $field_key ) {
@@ -613,6 +613,19 @@ class RWF_CPT {
 	 */
 	public static function is_development_handoff_prepared( $post_id ) {
 		return 'yes' === self::get_meta( $post_id, 'development_handoff_prepared' );
+	}
+
+	/**
+	 * Get historical agent run records for an item.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array
+	 */
+	public static function get_agent_runs( $post_id ) {
+		$raw  = self::get_meta( $post_id, 'agent_runs' );
+		$runs = json_decode( $raw, true );
+
+		return is_array( $runs ) ? $runs : array();
 	}
 
 	/**

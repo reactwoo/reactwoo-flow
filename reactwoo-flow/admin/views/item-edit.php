@@ -13,6 +13,7 @@ $is_existing = $post && $post_id;
 $message     = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $title       = $is_existing ? get_the_title( $post ) : '';
 $description = $is_existing ? $post->post_content : '';
+$agent_runs  = $is_existing ? RWF_CPT::get_agent_runs( $post_id ) : array();
 ?>
 
 <div class="wrap rwf-wrap">
@@ -67,6 +68,14 @@ $description = $is_existing ? $post->post_content : '';
 					<?php esc_html_e( 'Export Handoff JSON', 'reactwoo-flow' ); ?>
 				</a>
 			<?php endif; ?>
+			<?php if ( ! empty( $agent_runs ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_agent_runs&post_id=' . $post_id ), 'rwf_export_agent_runs_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export Agent Runs', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
 			<span class="rwf-analysis-status" aria-live="polite"></span>
 		<?php endif; ?>
 	</div>
@@ -110,6 +119,37 @@ $description = $is_existing ? $post->post_content : '';
 				)
 			);
 			?>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( ! empty( $agent_runs ) ) : ?>
+		<div class="rwf-panel rwf-agent-history">
+			<h2><?php esc_html_e( 'Agent Run History', 'reactwoo-flow' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Recent orchestration attempts for this item. Full context and output are available from the export.', 'reactwoo-flow' ); ?></p>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Recorded', 'reactwoo-flow' ); ?></th>
+						<th><?php esc_html_e( 'Scope', 'reactwoo-flow' ); ?></th>
+						<th><?php esc_html_e( 'Agent', 'reactwoo-flow' ); ?></th>
+						<th><?php esc_html_e( 'Provider', 'reactwoo-flow' ); ?></th>
+						<th><?php esc_html_e( 'Model', 'reactwoo-flow' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'reactwoo-flow' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( array_slice( array_reverse( $agent_runs ), 0, 10 ) as $run ) : ?>
+						<tr>
+							<td><?php echo esc_html( isset( $run['recorded_at'] ) ? $run['recorded_at'] : '' ); ?></td>
+							<td><?php echo esc_html( isset( $run['scope'] ) ? $run['scope'] : '' ); ?></td>
+							<td><?php echo esc_html( isset( $run['name'] ) ? $run['name'] : '' ); ?></td>
+							<td><?php echo esc_html( isset( $run['provider'] ) ? $run['provider'] : '' ); ?></td>
+							<td><?php echo esc_html( isset( $run['model'] ) ? $run['model'] : '' ); ?></td>
+							<td><span class="rwf-pill"><?php echo esc_html( isset( $run['status'] ) ? $run['status'] : '' ); ?></span></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
 		</div>
 	<?php endif; ?>
 

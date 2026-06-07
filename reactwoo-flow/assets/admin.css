@@ -73,6 +73,10 @@
 	margin: 12px 0 18px;
 }
 
+.rwf-agent-history table {
+	margin-top: 12px;
+}
+
 .rwf-filters {
 	display: flex;
 	flex-wrap: wrap;

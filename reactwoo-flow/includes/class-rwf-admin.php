@@ -28,6 +28,7 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_bulk_items', array( __CLASS__, 'handle_bulk_items' ) );
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
+		add_action( 'admin_post_rwf_export_agent_runs', array( __CLASS__, 'handle_export_agent_runs' ) );
 	}
 
 	/**
@@ -357,6 +358,41 @@ class RWF_Admin {
 		header( 'Content-Length: ' . strlen( $handoff ) );
 
 		echo $handoff; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
+	 * Download historical agent runs as JSON.
+	 */
+	public static function handle_export_agent_runs() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export agent runs for this item.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_agent_runs_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$runs = RWF_CPT::get_agent_runs( $post_id );
+		if ( empty( $runs ) ) {
+			wp_die( esc_html__( 'This item does not have agent runs to export.', 'reactwoo-flow' ) );
+		}
+
+		$payload   = wp_json_encode( $runs, JSON_PRETTY_PRINT );
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-agent-runs.json' );
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $payload ) );
+
+		echo $payload; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 
