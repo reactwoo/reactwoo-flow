@@ -14,6 +14,11 @@ $message     = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['mess
 $title       = $is_existing ? get_the_title( $post ) : '';
 $description = $is_existing ? $post->post_content : '';
 $agent_runs  = $is_existing ? RWF_CPT::get_agent_runs( $post_id ) : array();
+$current_status = $is_existing ? RWF_CPT::get_meta( $post_id, 'status' ) : 'new';
+$current_status = $current_status ? $current_status : 'new';
+$status_options = RWF_CPT::get_statuses();
+$status_transitions = $is_existing ? RWF_CPT::get_available_status_transitions( $current_status ) : array();
+$status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array();
 ?>
 
 <div class="wrap rwf-wrap">
@@ -22,6 +27,14 @@ $agent_runs  = $is_existing ? RWF_CPT::get_agent_runs( $post_id ) : array();
 	<?php if ( 'saved' === $message ) : ?>
 		<div class="notice notice-success is-dismissible">
 			<p><?php esc_html_e( 'Item saved.', 'reactwoo-flow' ); ?></p>
+		</div>
+	<?php elseif ( 'status_updated' === $message ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p><?php esc_html_e( 'Workflow status updated.', 'reactwoo-flow' ); ?></p>
+		</div>
+	<?php elseif ( 'status_error' === $message ) : ?>
+		<div class="notice notice-error is-dismissible">
+			<p><?php esc_html_e( 'Workflow status could not be updated from the current state.', 'reactwoo-flow' ); ?></p>
 		</div>
 	<?php endif; ?>
 
@@ -122,6 +135,76 @@ $agent_runs  = $is_existing ? RWF_CPT::get_agent_runs( $post_id ) : array();
 		</div>
 	<?php endif; ?>
 
+	<?php if ( $is_existing ) : ?>
+		<div class="rwf-panel rwf-workflow-panel">
+			<h2><?php esc_html_e( 'Workflow Orchestration', 'reactwoo-flow' ); ?></h2>
+			<p>
+				<strong><?php esc_html_e( 'Current Status:', 'reactwoo-flow' ); ?></strong>
+				<span class="rwf-pill"><?php echo esc_html( RWF_CPT::option_label( $status_options, $current_status ) ); ?></span>
+				<?php if ( RWF_CPT::get_meta( $post_id, 'status_changed_at' ) ) : ?>
+					<span class="description">
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %s: status change date. */
+								__( 'Last changed %s.', 'reactwoo-flow' ),
+								RWF_CPT::get_meta( $post_id, 'status_changed_at' )
+							)
+						);
+						?>
+					</span>
+				<?php endif; ?>
+			</p>
+
+			<?php if ( ! empty( $status_transitions ) ) : ?>
+				<form class="rwf-transition-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'rwf_transition_status_' . $post_id ); ?>
+					<input type="hidden" name="action" value="rwf_transition_status" />
+					<input type="hidden" name="post_id" value="<?php echo esc_attr( $post_id ); ?>" />
+
+					<label for="rwf-new-status"><?php esc_html_e( 'Move to', 'reactwoo-flow' ); ?></label>
+					<select id="rwf-new-status" name="new_status">
+						<?php foreach ( $status_transitions as $status_key => $status_label ) : ?>
+							<option value="<?php echo esc_attr( $status_key ); ?>"><?php echo esc_html( $status_label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+
+					<label for="rwf-transition-note" class="screen-reader-text"><?php esc_html_e( 'Transition note', 'reactwoo-flow' ); ?></label>
+					<input id="rwf-transition-note" name="transition_note" type="text" placeholder="<?php esc_attr_e( 'Optional transition note', 'reactwoo-flow' ); ?>" />
+					<button class="button" type="submit"><?php esc_html_e( 'Update Workflow', 'reactwoo-flow' ); ?></button>
+				</form>
+			<?php else : ?>
+				<p class="description"><?php esc_html_e( 'No workflow transitions are currently available from this status.', 'reactwoo-flow' ); ?></p>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $status_history ) ) : ?>
+				<h3><?php esc_html_e( 'Recent Status History', 'reactwoo-flow' ); ?></h3>
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Recorded', 'reactwoo-flow' ); ?></th>
+							<th><?php esc_html_e( 'From', 'reactwoo-flow' ); ?></th>
+							<th><?php esc_html_e( 'To', 'reactwoo-flow' ); ?></th>
+							<th><?php esc_html_e( 'User', 'reactwoo-flow' ); ?></th>
+							<th><?php esc_html_e( 'Note', 'reactwoo-flow' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( array_slice( array_reverse( $status_history ), 0, 8 ) as $entry ) : ?>
+							<tr>
+								<td><?php echo esc_html( isset( $entry['recorded_at'] ) ? $entry['recorded_at'] : '' ); ?></td>
+								<td><?php echo esc_html( RWF_CPT::option_label( $status_options, isset( $entry['from'] ) ? $entry['from'] : '' ) ); ?></td>
+								<td><?php echo esc_html( RWF_CPT::option_label( $status_options, isset( $entry['to'] ) ? $entry['to'] : '' ) ); ?></td>
+								<td><?php echo esc_html( isset( $entry['user_name'] ) ? $entry['user_name'] : '' ); ?></td>
+								<td><?php echo esc_html( isset( $entry['note'] ) ? $entry['note'] : '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+	<?php endif; ?>
+
 	<?php if ( ! empty( $agent_runs ) ) : ?>
 		<div class="rwf-panel rwf-agent-history">
 			<h2><?php esc_html_e( 'Agent Run History', 'reactwoo-flow' ); ?></h2>
@@ -196,6 +279,10 @@ $agent_runs  = $is_existing ? RWF_CPT::get_agent_runs( $post_id ) : array();
 				<div class="rwf-field-grid">
 					<?php foreach ( $group['fields'] as $field_key => $definition ) : ?>
 						<?php
+						if ( $is_existing && 'status' === $field_key ) {
+							continue;
+						}
+
 						$value = $is_existing ? RWF_CPT::get_meta( $post_id, $field_key ) : '';
 
 						if ( ! $is_existing && 'status' === $field_key ) {

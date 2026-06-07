@@ -25,6 +25,7 @@ class RWF_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 		add_action( 'admin_post_rwf_save_item', array( __CLASS__, 'handle_save_item' ) );
+		add_action( 'admin_post_rwf_transition_status', array( __CLASS__, 'handle_transition_status' ) );
 		add_action( 'admin_post_rwf_bulk_items', array( __CLASS__, 'handle_bulk_items' ) );
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
@@ -235,6 +236,54 @@ class RWF_Admin {
 	}
 
 	/**
+	 * Handle workflow status transitions from item detail pages.
+	 */
+	public static function handle_transition_status() {
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+
+		check_admin_referer( 'rwf_transition_status_' . $post_id );
+
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to transition this item.', 'reactwoo-flow' ) );
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$new_status = isset( $_POST['new_status'] ) ? sanitize_key( wp_unslash( $_POST['new_status'] ) ) : '';
+		$note       = isset( $_POST['transition_note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['transition_note'] ) ) : '';
+		$result     = RWF_CPT::transition_status( $post_id, $new_status, $note );
+
+		if ( is_wp_error( $result ) ) {
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'    => self::PAGE_ITEM,
+						'id'      => $post_id,
+						'message' => 'status_error',
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => self::PAGE_ITEM,
+					'id'      => $post_id,
+					'message' => 'status_updated',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
 	 * Handle inbox bulk actions.
 	 */
 	public static function handle_bulk_items() {
@@ -265,8 +314,12 @@ class RWF_Admin {
 				$new_status = isset( $_POST['new_status'] ) ? sanitize_key( wp_unslash( $_POST['new_status'] ) ) : '';
 				$statuses   = RWF_CPT::get_statuses();
 				if ( isset( $statuses[ $new_status ] ) ) {
-					RWF_CPT::update_meta( $item_id, 'status', $new_status );
-					$count++;
+					$result = RWF_CPT::transition_status( $item_id, $new_status, __( 'Bulk status update from inbox.', 'reactwoo-flow' ) );
+					if ( is_wp_error( $result ) ) {
+						$errors++;
+					} else {
+						$count++;
+					}
 				}
 			} elseif ( 'archive' === $bulk_action ) {
 				wp_trash_post( $item_id );
@@ -407,6 +460,10 @@ class RWF_Admin {
 				$request_key = 'rwf_' . $field_key;
 
 				if ( isset( $_POST[ $request_key ] ) ) {
+					if ( 'status' === $field_key && '' !== RWF_CPT::get_meta( $post_id, 'status' ) ) {
+						continue;
+					}
+
 					RWF_CPT::update_meta( $post_id, $field_key, wp_unslash( $_POST[ $request_key ] ) );
 				}
 			}

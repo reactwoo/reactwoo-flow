@@ -133,6 +133,52 @@ class RWF_CPT {
 	}
 
 	/**
+	 * Get allowed workflow transitions.
+	 *
+	 * @return array
+	 */
+	public static function get_status_transition_map() {
+		return array(
+			'new'                     => array( 'needs_triage', 'awaiting_information', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
+			'needs_triage'            => array( 'awaiting_information', 'confirmed', 'ready_for_specification', 'closed', 'duplicate', 'wont_fix' ),
+			'awaiting_information'    => array( 'needs_triage', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
+			'confirmed'               => array( 'ready_for_specification', 'ready_for_development', 'closed', 'duplicate', 'wont_fix' ),
+			'ready_for_specification' => array( 'ready_for_development', 'closed', 'duplicate', 'wont_fix' ),
+			'ready_for_development'   => array( 'in_development', 'closed', 'duplicate', 'wont_fix' ),
+			'in_development'          => array( 'ready_for_qa', 'closed' ),
+			'ready_for_qa'            => array( 'failed_qa', 'ready_for_release', 'closed' ),
+			'failed_qa'               => array( 'in_development', 'ready_for_qa', 'closed' ),
+			'ready_for_release'       => array( 'released', 'closed' ),
+			'released'                => array( 'closed' ),
+			'closed'                  => array( 'needs_triage' ),
+			'duplicate'               => array( 'needs_triage', 'closed' ),
+			'wont_fix'                => array( 'needs_triage', 'closed' ),
+		);
+	}
+
+	/**
+	 * Get allowed next statuses for an item.
+	 *
+	 * @param string $current_status Current status key.
+	 * @return array
+	 */
+	public static function get_available_status_transitions( $current_status ) {
+		$statuses = self::get_statuses();
+		$map      = self::get_status_transition_map();
+		$current  = $current_status ? $current_status : 'new';
+		$next     = isset( $map[ $current ] ) ? $map[ $current ] : array();
+		$options  = array();
+
+		foreach ( $next as $status_key ) {
+			if ( isset( $statuses[ $status_key ] ) ) {
+				$options[ $status_key ] = $statuses[ $status_key ];
+			}
+		}
+
+		return $options;
+	}
+
+	/**
 	 * Get priority options.
 	 *
 	 * @return array
@@ -542,7 +588,7 @@ class RWF_CPT {
 	 * @return array
 	 */
 	public static function get_all_field_keys() {
-		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution', 'development_agent_execution', 'development_handoff_prepared', 'development_handoff_prepared_at', 'agent_runs' );
+		$keys = array( 'ai_analyzed', 'ai_analyzed_at', 'ai_raw_response', 'specification_generated', 'specification_raw_response', 'triage_agent_execution', 'specification_agent_execution', 'development_agent_execution', 'development_handoff_prepared', 'development_handoff_prepared_at', 'agent_runs', 'status_changed_at', 'status_history' );
 
 		foreach ( self::get_field_groups() as $group ) {
 			foreach ( array_keys( $group['fields'] ) as $field_key ) {
@@ -626,6 +672,68 @@ class RWF_CPT {
 		$runs = json_decode( $raw, true );
 
 		return is_array( $runs ) ? $runs : array();
+	}
+
+	/**
+	 * Get historical status changes for an item.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array
+	 */
+	public static function get_status_history( $post_id ) {
+		$raw     = self::get_meta( $post_id, 'status_history' );
+		$history = json_decode( $raw, true );
+
+		return is_array( $history ) ? $history : array();
+	}
+
+	/**
+	 * Transition an item status and record history.
+	 *
+	 * @param int    $post_id    Post ID.
+	 * @param string $new_status New status key.
+	 * @param string $note       Optional transition note.
+	 * @return true|WP_Error
+	 */
+	public static function transition_status( $post_id, $new_status, $note = '' ) {
+		$statuses       = self::get_statuses();
+		$current_status = self::get_meta( $post_id, 'status' );
+		$current_status = $current_status ? $current_status : 'new';
+		$next_statuses  = self::get_available_status_transitions( $current_status );
+
+		if ( ! isset( $statuses[ $new_status ] ) ) {
+			return new WP_Error( 'rwf_invalid_status', __( 'Invalid workflow status.', 'reactwoo-flow' ) );
+		}
+
+		if ( $new_status === $current_status ) {
+			return true;
+		}
+
+		if ( ! isset( $next_statuses[ $new_status ] ) ) {
+			return new WP_Error( 'rwf_invalid_status_transition', __( 'That workflow transition is not available from the current status.', 'reactwoo-flow' ) );
+		}
+
+		self::update_meta( $post_id, 'status', $new_status );
+		self::update_meta( $post_id, 'status_changed_at', current_time( 'mysql' ) );
+
+		$user    = wp_get_current_user();
+		$history = self::get_status_history( $post_id );
+		$history[] = array(
+			'from'        => $current_status,
+			'to'          => $new_status,
+			'note'        => sanitize_textarea_field( $note ),
+			'user_id'     => $user ? (int) $user->ID : 0,
+			'user_name'   => $user ? $user->display_name : '',
+			'recorded_at' => current_time( 'mysql' ),
+		);
+
+		if ( count( $history ) > 100 ) {
+			$history = array_slice( $history, -100 );
+		}
+
+		self::update_meta( $post_id, 'status_history', wp_json_encode( $history, JSON_PRETTY_PRINT ) );
+
+		return true;
 	}
 
 	/**

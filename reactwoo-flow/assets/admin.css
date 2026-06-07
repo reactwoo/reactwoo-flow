@@ -77,6 +77,22 @@
 	margin-top: 12px;
 }
 
+.rwf-transition-form {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 14px 0;
+}
+
+.rwf-transition-form input[type="text"] {
+	min-width: 260px;
+}
+
+.rwf-workflow-panel table {
+	margin-top: 10px;
+}
+
 .rwf-filters {
 	display: flex;
 	flex-wrap: wrap;
