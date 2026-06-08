@@ -128,9 +128,23 @@ class RWF_REST {
 			'/integrations/github/sync-pull-request'    => 'sync_github_pull_request',
 			'/integrations/confluence/publish-specification' => 'publish_confluence_specification',
 			'/integrations/cursor/send-handoff'         => 'send_cursor_handoff',
+			'/integrations/jira/sync-status'            => 'sync_jira_status',
+			'/run-qa-review'                            => 'run_qa_review',
+			'/run-ux-review'                            => 'run_ux_review',
 		);
 
 		foreach ( $integration_routes as $route => $callback ) {
+			$args = array(
+				'id' => array(
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				),
+			);
+			if ( in_array( $callback, array( 'run_qa_review', 'run_ux_review' ), true ) ) {
+				$args = array_merge( $args, self::agent_override_args() );
+			}
+
 			register_rest_route(
 				self::NAMESPACE,
 				'/items/(?P<id>\d+)' . $route,
@@ -138,13 +152,7 @@ class RWF_REST {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( __CLASS__, $callback ),
 					'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
-					'args'                => array(
-						'id' => array(
-							'type'              => 'integer',
-							'required'          => true,
-							'sanitize_callback' => 'absint',
-						),
-					),
+					'args'                => $args,
 				)
 			);
 		}
@@ -422,6 +430,77 @@ class RWF_REST {
 				'success' => true,
 				'item_id' => $post_id,
 				'cursor'  => $result,
+			)
+		);
+	}
+
+	/**
+	 * Sync linked Jira issue status.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function sync_jira_status( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_Integration_Jira::sync_issue_status( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'item_id' => $post_id,
+				'jira'    => $result,
+			)
+		);
+	}
+
+	/**
+	 * Run the QA review agent for an item.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function run_qa_review( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_AI::generate_qa_review_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'    => true,
+				'item_id'    => $post_id,
+				'qa_review'  => $result,
+				'generated_at' => RWF_CPT::get_meta( $post_id, 'qa_review_generated_at' ),
+			)
+		);
+	}
+
+	/**
+	 * Run the UX review agent for an item.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function run_ux_review( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_AI::generate_ux_review_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'    => true,
+				'item_id'    => $post_id,
+				'ux_review'  => $result,
+				'generated_at' => RWF_CPT::get_meta( $post_id, 'ux_review_generated_at' ),
 			)
 		);
 	}

@@ -67,6 +67,20 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 			</button>
 			<button
 				type="button"
+				class="button button-secondary rwf-run-qa-review-button"
+				data-item-id="<?php echo esc_attr( $post_id ); ?>"
+			>
+				<?php esc_html_e( 'Run QA Review', 'reactwoo-flow' ); ?>
+			</button>
+			<button
+				type="button"
+				class="button button-secondary rwf-run-ux-review-button"
+				data-item-id="<?php echo esc_attr( $post_id ); ?>"
+			>
+				<?php esc_html_e( 'Run UX Review', 'reactwoo-flow' ); ?>
+			</button>
+			<button
+				type="button"
 				class="button button-secondary rwf-prepare-handoff-button"
 				data-item-id="<?php echo esc_attr( $post_id ); ?>"
 			>
@@ -79,6 +93,15 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					data-item-id="<?php echo esc_attr( $post_id ); ?>"
 				>
 					<?php esc_html_e( 'Create Jira Issue', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
+			<?php if ( RWF_Integration_Jira::is_configured() && '' !== RWF_CPT::get_meta( $post_id, 'jira_id' ) ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-sync-jira-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Sync Jira Status', 'reactwoo-flow' ); ?>
 				</button>
 			<?php endif; ?>
 			<?php if ( RWF_Integration_Confluence::is_configured() && RWF_CPT::is_specification_generated( $post_id ) ) : ?>

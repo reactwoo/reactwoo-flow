@@ -152,6 +152,18 @@ class RWF_Admin {
 				'sendCursorLabel'       => __( 'Send to Cursor MCP', 'reactwoo-flow' ),
 				'cursorErrorLabel'      => __( 'Cursor MCP handoff failed. Check the bridge endpoint.', 'reactwoo-flow' ),
 				'cursorDoneLabel'       => __( 'Handoff sent to Cursor MCP. Refreshing...', 'reactwoo-flow' ),
+				'runningQaReview'       => __( 'Running QA review...', 'reactwoo-flow' ),
+				'runQaReviewLabel'      => __( 'Run QA Review', 'reactwoo-flow' ),
+				'qaReviewErrorLabel'    => __( 'QA review failed. Check agent settings and try again.', 'reactwoo-flow' ),
+				'qaReviewDoneLabel'     => __( 'QA review saved. Refreshing...', 'reactwoo-flow' ),
+				'runningUxReview'       => __( 'Running UX review...', 'reactwoo-flow' ),
+				'runUxReviewLabel'      => __( 'Run UX Review', 'reactwoo-flow' ),
+				'uxReviewErrorLabel'    => __( 'UX review failed. Check agent settings and try again.', 'reactwoo-flow' ),
+				'uxReviewDoneLabel'     => __( 'UX review saved. Refreshing...', 'reactwoo-flow' ),
+				'syncingJira'           => __( 'Syncing Jira status...', 'reactwoo-flow' ),
+				'syncJiraLabel'         => __( 'Sync Jira Status', 'reactwoo-flow' ),
+				'jiraSyncErrorLabel'    => __( 'Jira status sync failed.', 'reactwoo-flow' ),
+				'jiraSyncDoneLabel'     => __( 'Jira status synced. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}

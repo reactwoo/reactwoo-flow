@@ -72,6 +72,7 @@ final class RWF_Plugin {
 		require_once RWF_PLUGIN_DIR . 'includes/integrations/class-rwf-integration-github.php';
 		require_once RWF_PLUGIN_DIR . 'includes/integrations/class-rwf-integration-confluence.php';
 		require_once RWF_PLUGIN_DIR . 'includes/integrations/class-rwf-integration-cursor-mcp.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-automation.php';
 	}
 
 	/**

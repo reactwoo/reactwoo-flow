@@ -16,6 +16,7 @@ $sections = array(
 	'jira'       => __( 'Jira', 'reactwoo-flow' ),
 	'confluence' => __( 'Confluence', 'reactwoo-flow' ),
 	'github'     => __( 'GitHub', 'reactwoo-flow' ),
+	'automation' => __( 'Workflow Automation', 'reactwoo-flow' ),
 );
 ?>
 
@@ -59,6 +60,8 @@ $sections = array(
 					<p class="description"><?php esc_html_e( 'Uses the same Atlassian email and API token as Jira. Specifications publish to the configured space.', 'reactwoo-flow' ); ?></p>
 				<?php elseif ( 'github' === $section_key ) : ?>
 					<p class="description"><?php esc_html_e( 'Repository and token for syncing pull request metadata onto flow items.', 'reactwoo-flow' ); ?></p>
+				<?php elseif ( 'automation' === $section_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Optional workflow shortcuts after triage or specification generation. Integrations must be configured first.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
 				<table class="form-table" role="presentation">

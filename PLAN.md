@@ -151,6 +151,7 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 1](docs/phases/phase-1.md) | MVP foundation (intake → triage → spec → handoff → publish) | Complete (v0.1.2) |
 | [Phase 2](docs/phases/phase-2.md) | Self-updater, per-item agent overrides, doc refresh | Complete (v0.1.3) |
 | [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Complete (v0.2.0) |
+| [Phase 4](docs/phases/phase-4.md) | QA/UX agents, Jira sync, workflow automation | Complete (v0.3.0) |
 
 ---
 
@@ -160,7 +161,7 @@ Formal phase docs live under `docs/phases/`.
 
 - Settings placeholders exist (`rwf_jira_url`, email, API token, project key).
 - Item meta field `jira_id` for manual linking today.
-- Future: create epic/story from triage output; sync status.
+- **Done:** create issue (v0.2.0), sync status (v0.3.0). Future: epic/story from triage output.
 
 ## GitHub
 
@@ -181,8 +182,8 @@ Formal phase docs live under `docs/phases/`.
 
 ## QA / UX agents
 
-- Agent types defined in `RWF_Agent::get_agent_types()`.
-- Prompt templates and execution paths not yet built.
+- **Done (v0.3.0)** — QA and UX review agents with Markdown output and admin/REST execution.
+- Playwright / visual regression remains out of scope.
 
 ---
 

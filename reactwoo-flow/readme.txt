@@ -5,7 +5,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 
 Internal ReactWoo operations platform for intake, triage, and agent orchestration.
 
@@ -20,6 +20,9 @@ ReactWoo Flow manages product ideas, support tickets, bug reports, and release t
 3. Configure agent providers under **ReactWoo Flow → Settings**.
 
 == Changelog ==
+
+= 0.3.0 =
+* QA and UX review agents, Jira status sync, workflow automation settings.
 
 = 0.2.0 =
 * Jira, GitHub, Confluence, and Cursor MCP integrations with REST endpoints and admin actions.

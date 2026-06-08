@@ -28,7 +28,8 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 | planning | OpenAI | Yes (triage, specification) |
 | release | OpenAI | Yes (release notes) |
 | development | Cursor MCP | Prepare handoff only |
-| qa / ux | manual / Cursor | Not implemented |
+| qa | OpenAI (default) | Yes (QA review Markdown) |
+| ux | OpenAI (default) | Yes (UX review Markdown) |
 
 ## Agent overrides
 

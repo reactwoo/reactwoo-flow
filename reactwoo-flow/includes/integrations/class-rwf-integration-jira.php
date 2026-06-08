@@ -243,4 +243,57 @@ class RWF_Integration_Jira {
 			'content' => $paragraphs,
 		);
 	}
+
+	/**
+	 * Sync Jira issue status for a linked item.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array|WP_Error
+	 */
+	public static function sync_issue_status( $post_id ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		if ( ! self::is_configured() ) {
+			return new WP_Error( 'rwf_jira_not_configured', __( 'Jira is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$issue_key = RWF_CPT::get_meta( $post_id, 'jira_id' );
+		if ( '' === $issue_key ) {
+			return new WP_Error( 'rwf_jira_not_linked', __( 'This item has no linked Jira issue.', 'reactwoo-flow' ) );
+		}
+
+		$result = RWF_Integration_Http::request_json(
+			'GET',
+			trailingslashit( self::get_base_url() ) . 'rest/api/3/issue/' . rawurlencode( $issue_key ) . '?fields=status',
+			array(
+				'headers' => array(
+					'Authorization' => self::auth_header(),
+				),
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$data   = is_array( $result['data'] ) ? $result['data'] : array();
+		$status = isset( $data['fields']['status']['name'] ) ? (string) $data['fields']['status']['name'] : '';
+
+		if ( '' === $status ) {
+			return new WP_Error( 'rwf_jira_status_missing', __( 'Jira did not return an issue status.', 'reactwoo-flow' ), $data );
+		}
+
+		RWF_CPT::update_meta( $post_id, 'jira_status', $status );
+		RWF_CPT::update_meta( $post_id, 'jira_status_synced_at', current_time( 'mysql' ) );
+
+		return array(
+			'jira_id'     => $issue_key,
+			'jira_status' => $status,
+			'jira_url'    => RWF_CPT::get_meta( $post_id, 'jira_url' ),
+		);
+	}
 }

@@ -157,6 +157,7 @@ require_once $base . 'providers/interface-rwf-provider.php';
 require_once $base . 'providers/class-rwf-provider-openai.php';
 require_once $base . 'providers/class-rwf-provider-anthropic.php';
 require_once $base . 'providers/class-rwf-provider-cursor-mcp.php';
+require_once $base . 'class-rwf-automation.php';
 require_once $base . 'class-rwf-ai.php';
 require_once $base . 'class-rwf-rest.php';
 require_once $base . 'integrations/class-rwf-integration-http.php';

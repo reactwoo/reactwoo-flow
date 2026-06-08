@@ -158,6 +158,36 @@
 			rwfAdmin.sendCursorLabel
 		);
 
+		bindAgentAction(
+			'.rwf-run-qa-review-button',
+			'/run-qa-review',
+			'qa',
+			rwfAdmin.runningQaReview,
+			rwfAdmin.qaReviewDoneLabel,
+			rwfAdmin.qaReviewErrorLabel,
+			rwfAdmin.runQaReviewLabel
+		);
+
+		bindAgentAction(
+			'.rwf-run-ux-review-button',
+			'/run-ux-review',
+			'ux',
+			rwfAdmin.runningUxReview,
+			rwfAdmin.uxReviewDoneLabel,
+			rwfAdmin.uxReviewErrorLabel,
+			rwfAdmin.runUxReviewLabel
+		);
+
+		bindAgentAction(
+			'.rwf-sync-jira-button',
+			'/integrations/jira/sync-status',
+			null,
+			rwfAdmin.syncingJira,
+			rwfAdmin.jiraSyncDoneLabel,
+			rwfAdmin.jiraSyncErrorLabel,
+			rwfAdmin.syncJiraLabel
+		);
+
 		$('.rwf-media-button').on('click', function () {
 			var targetId = $(this).data('rwf-media-target');
 			var $target = $('#' + targetId);

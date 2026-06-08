@@ -12,6 +12,23 @@
 
 ---
 
+## v0.3.0
+
+Phase 4 — QA/UX agents, Jira status sync, and workflow automation.
+
+### Added
+
+- QA and UX review agents with prompts, field groups, REST endpoints, and admin actions.
+- Jira issue status sync (`jira_status`, `POST /integrations/jira/sync-status`).
+- Workflow automation settings: auto-create Jira after triage, auto-advance after specification.
+- `RWF_Automation` hook class; per-item QA/UX agent overrides.
+
+### Changed
+
+- Default QA and UX agent providers set to OpenAI (requires API key like planning agent).
+
+---
+
 ## v0.2.0
 
 Phase 3 — external integrations and PHPUnit coverage.

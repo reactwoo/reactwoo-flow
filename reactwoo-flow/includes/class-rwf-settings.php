@@ -77,7 +77,7 @@ class RWF_Settings {
 				'type'    => 'select',
 				'section' => 'agents',
 				'options' => RWF_Agent::get_providers(),
-				'default' => 'manual',
+				'default' => 'openai',
 			),
 			'rwf_qa_agent_model'          => array(
 				'label'   => __( 'QA Agent Model', 'reactwoo-flow' ),
@@ -90,7 +90,7 @@ class RWF_Settings {
 				'type'    => 'select',
 				'section' => 'agents',
 				'options' => RWF_Agent::get_providers(),
-				'default' => 'cursor_mcp',
+				'default' => 'openai',
 			),
 			'rwf_ux_agent_model'          => array(
 				'label'   => __( 'UX Agent Model', 'reactwoo-flow' ),
@@ -128,6 +128,28 @@ class RWF_Settings {
 				'type'        => 'url',
 				'section'     => 'providers',
 				'description' => __( 'HTTP endpoint that accepts development handoff JSON from ReactWoo Flow.', 'reactwoo-flow' ),
+			),
+			'rwf_auto_create_jira_on_triage' => array(
+				'label'       => __( 'Auto-create Jira Issue After Triage', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Creates a Jira issue when triage succeeds and no issue is linked yet.', 'reactwoo-flow' ),
+			),
+			'rwf_auto_advance_ready_for_development' => array(
+				'label'       => __( 'Auto-advance to Ready for Development', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Moves items from Ready for Specification to Ready for Development after a spec is generated.', 'reactwoo-flow' ),
 			),
 			'rwf_intake_notification_email' => array(
 				'label'       => __( 'Intake Notification Email', 'reactwoo-flow' ),
@@ -235,5 +257,15 @@ class RWF_Settings {
 	 */
 	public static function sanitize_secret( $value ) {
 		return sanitize_text_field( (string) $value );
+	}
+
+	/**
+	 * Whether a yes/no setting is enabled.
+	 *
+	 * @param string $option_key Option key.
+	 * @return bool
+	 */
+	public static function is_yes( $option_key ) {
+		return 'yes' === self::get( $option_key );
 	}
 }

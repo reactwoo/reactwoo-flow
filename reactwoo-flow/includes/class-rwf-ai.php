@@ -68,6 +68,44 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate a QA review and persist it to the item.
+	 *
+	 * @param int                  $post_id   Item post ID.
+	 * @param array<string, mixed> $overrides Optional provider/model overrides.
+	 * @return string|WP_Error
+	 */
+	public static function generate_qa_review_and_save( $post_id, $overrides = array() ) {
+		$review = self::generate_qa_review( $post_id, $overrides );
+
+		if ( is_wp_error( $review ) ) {
+			return $review;
+		}
+
+		self::save_qa_review( $post_id, $review );
+
+		return $review;
+	}
+
+	/**
+	 * Generate a UX review and persist it to the item.
+	 *
+	 * @param int                  $post_id   Item post ID.
+	 * @param array<string, mixed> $overrides Optional provider/model overrides.
+	 * @return string|WP_Error
+	 */
+	public static function generate_ux_review_and_save( $post_id, $overrides = array() ) {
+		$review = self::generate_ux_review( $post_id, $overrides );
+
+		if ( is_wp_error( $review ) ) {
+			return $review;
+		}
+
+		self::save_ux_review( $post_id, $review );
+
+		return $review;
+	}
+
+	/**
 	 * Prepare a development-agent handoff package and persist it to the item.
 	 *
 	 * @param int $post_id Item post ID.
@@ -235,6 +273,112 @@ class RWF_AI {
 	}
 
 	/**
+	 * Generate a QA review through the QA agent.
+	 *
+	 * @param int                  $post_id   Item post ID.
+	 * @param array<string, mixed> $overrides Optional provider/model overrides.
+	 * @return string|WP_Error
+	 */
+	public static function generate_qa_review( $post_id, $overrides = array() ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		$agent = RWF_Agent::execute(
+			self::merge_agent_args(
+				'qa',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'QA Review', 'reactwoo-flow' ),
+					'agent_type'      => 'qa',
+					'prompt_template' => 'qa-review.md',
+					'input_context'   => self::build_qa_review_context( $post_id ),
+					'timeout'         => 60,
+				)
+			)
+		);
+
+		if ( is_wp_error( $agent ) ) {
+			self::save_agent_execution( $post_id, 'qa', $agent->get_error_data() );
+			return $agent;
+		}
+
+		self::save_agent_execution( $post_id, 'qa', $agent );
+
+		return trim( (string) $agent['output'] );
+	}
+
+	/**
+	 * Generate a UX review through the UX agent.
+	 *
+	 * @param int                  $post_id   Item post ID.
+	 * @param array<string, mixed> $overrides Optional provider/model overrides.
+	 * @return string|WP_Error
+	 */
+	public static function generate_ux_review( $post_id, $overrides = array() ) {
+		$post = get_post( $post_id );
+
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		$agent = RWF_Agent::execute(
+			self::merge_agent_args(
+				'ux',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'UX Review', 'reactwoo-flow' ),
+					'agent_type'      => 'ux',
+					'prompt_template' => 'ux-review.md',
+					'input_context'   => self::build_ux_review_context( $post_id ),
+					'timeout'         => 60,
+				)
+			)
+		);
+
+		if ( is_wp_error( $agent ) ) {
+			self::save_agent_execution( $post_id, 'ux', $agent->get_error_data() );
+			return $agent;
+		}
+
+		self::save_agent_execution( $post_id, 'ux', $agent );
+
+		return trim( (string) $agent['output'] );
+	}
+
+	/**
+	 * Build context for QA review prompts.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_qa_review_context( $post_id ) {
+		$context = self::build_specification_context( $post_id );
+		$context['suggested_qa_checklist'] = RWF_CPT::get_meta( $post_id, 'suggested_qa_checklist' );
+		$context['acceptance_criteria']    = RWF_CPT::get_meta( $post_id, 'acceptance_criteria' );
+
+		return $context;
+	}
+
+	/**
+	 * Build context for UX review prompts.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array
+	 */
+	public static function build_ux_review_context( $post_id ) {
+		$context = self::build_specification_context( $post_id );
+		$context['ux_considerations'] = RWF_CPT::get_meta( $post_id, 'ux_considerations' );
+		$context['screenshots']       = RWF_CPT::get_meta( $post_id, 'screenshots' );
+
+		return $context;
+	}
+
+	/**
 	 * Build the item context sent to an agent.
 	 *
 	 * @param int $post_id Item post ID.
@@ -251,7 +395,7 @@ class RWF_AI {
 		);
 
 		foreach ( RWF_CPT::get_field_groups() as $group_key => $group ) {
-			if ( in_array( $group_key, array( 'agent_overrides', 'agent_execution', 'ai_analysis', 'specification', 'release_notes', 'integrations' ), true ) ) {
+			if ( in_array( $group_key, array( 'agent_overrides', 'agent_execution', 'ai_analysis', 'specification', 'release_notes', 'qa_review', 'ux_review', 'integrations' ), true ) ) {
 				continue;
 			}
 
@@ -511,6 +655,8 @@ class RWF_AI {
 				RWF_CPT::update_meta( $post_id, 'severity', $severity_key );
 			}
 		}
+
+		RWF_Automation::after_triage( $post_id );
 	}
 
 	/**
@@ -524,6 +670,8 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'specification_raw_response', $specification );
 		RWF_CPT::update_meta( $post_id, 'specification_generated', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'specification_generated_at', current_time( 'mysql' ) );
+
+		RWF_Automation::after_specification( $post_id );
 	}
 
 	/**
@@ -537,6 +685,30 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'release_notes_raw_response', $release_notes );
 		RWF_CPT::update_meta( $post_id, 'release_notes_generated', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'release_notes_generated_at', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Save generated QA review fields.
+	 *
+	 * @param int    $post_id Item post ID.
+	 * @param string $review  QA review Markdown.
+	 */
+	public static function save_qa_review( $post_id, $review ) {
+		RWF_CPT::update_meta( $post_id, 'qa_review_markdown', $review );
+		RWF_CPT::update_meta( $post_id, 'qa_review_generated', 'yes' );
+		RWF_CPT::update_meta( $post_id, 'qa_review_generated_at', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Save generated UX review fields.
+	 *
+	 * @param int    $post_id Item post ID.
+	 * @param string $review  UX review Markdown.
+	 */
+	public static function save_ux_review( $post_id, $review ) {
+		RWF_CPT::update_meta( $post_id, 'ux_review_markdown', $review );
+		RWF_CPT::update_meta( $post_id, 'ux_review_generated', 'yes' );
+		RWF_CPT::update_meta( $post_id, 'ux_review_generated_at', current_time( 'mysql' ) );
 	}
 
 	/**
