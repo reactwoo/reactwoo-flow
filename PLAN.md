@@ -59,6 +59,8 @@ reactwoo-flow/                    # Git repo root (README, CHANGELOG, PLAN)
 | `RWF_Agent` | Model-agnostic agent orchestrator (prepare + execute) |
 | `RWF_AI` | Workflow helpers: triage, specification, handoff, context builders |
 | `RWF_REST` | Authenticated REST endpoints |
+| `RWF_Integrations` | Integration configuration summary and connectivity tests |
+| `RWF_Automation` | Workflow automation hooks (auto Jira, auto-advance) |
 | `RWF_Intake` | Frontend shortcode and public submission handler |
 
 ## Data model
@@ -78,12 +80,12 @@ Each agent execution record supports:
 
 Agent types (configured in settings, executed via `RWF_Agent`):
 
-| Agent | Preferred provider | MVP status |
-|-------|-------------------|------------|
+| Agent | Preferred provider | Status |
+|-------|-------------------|--------|
 | Planning | OpenAI / GPT | **Executable** (triage + specification) |
-| Development | Cursor MCP | **Prepare only** (handoff package, no remote execution) |
-| QA | Manual / future vision model | Not implemented |
-| UX | Cursor MCP | Not implemented |
+| Development | Cursor MCP | **Prepare only** (handoff package; MCP send when configured) |
+| QA | OpenAI / GPT | **Executable** (Markdown review) |
+| UX | OpenAI / GPT | **Executable** (Markdown review) |
 | Release | OpenAI / GPT | **Executable** (release notes) |
 
 Provider registry: `openai`, `anthropic`, `cursor_mcp` (prepare-only), `manual`.
@@ -130,15 +132,18 @@ Build **only** what is listed below until MVP is declared complete. Design for f
 | `PLAN.md` | Done |
 | `CHANGELOG.md` | Done |
 
-## Out of scope (design only)
+## Integrations (implemented)
 
-- Jira integration (create/link issues)
-- Cursor MCP integration (remote agent execution)
-- GitHub integration (branches, PRs, status)
+- Jira — create issues, sync status (v0.2.0–v0.3.0)
+- GitHub — PR metadata and CI status sync (v0.2.0, CI v0.3.1)
+- Confluence — publish specifications (v0.2.0)
+- Cursor MCP — handoff delivery when endpoint configured (v0.2.0)
+
+## Still out of scope
+
 - Playwright / automated QA pipeline
-- AI UX review pipeline
-- Remote Cursor MCP execution
-- Jira / GitHub / Confluence automation
+- Remote Cursor agent execution inside WordPress
+- Scheduled integration health monitoring
 
 ---
 
@@ -152,6 +157,7 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 2](docs/phases/phase-2.md) | Self-updater, per-item agent overrides, doc refresh | Complete (v0.1.3) |
 | [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Complete (v0.2.0) |
 | [Phase 4](docs/phases/phase-4.md) | QA/UX agents, Jira sync, workflow automation | Complete (v0.3.0) |
+| [Phase 5](docs/phases/phase-5.md) | Integration health, exports, inbox polish | Complete (v0.3.1) |
 
 ---
 

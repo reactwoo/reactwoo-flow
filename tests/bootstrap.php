@@ -102,6 +102,12 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 	}
 }
 
+if ( ! function_exists( 'untrailingslashit' ) ) {
+	function untrailingslashit( $string ) {
+		return rtrim( (string) $string, '/\\' );
+	}
+}
+
 if ( ! function_exists( 'get_post_meta' ) ) {
 	function get_post_meta( $post_id, $key, $single = false ) {
 		$store = $GLOBALS['rwf_test_post_meta'];
@@ -123,6 +129,19 @@ if ( ! function_exists( 'update_post_meta' ) ) {
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $option, $default = false ) {
 		return array_key_exists( $option, $GLOBALS['rwf_test_options'] ) ? $GLOBALS['rwf_test_options'][ $option ] : $default;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	function update_option( $option, $value ) {
+		$GLOBALS['rwf_test_options'][ $option ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'is_wp_error' ) ) {
+	function is_wp_error( $thing ) {
+		return $thing instanceof WP_Error;
 	}
 }
 
@@ -162,4 +181,7 @@ require_once $base . 'class-rwf-ai.php';
 require_once $base . 'class-rwf-rest.php';
 require_once $base . 'integrations/class-rwf-integration-http.php';
 require_once $base . 'integrations/class-rwf-integration-jira.php';
+require_once $base . 'integrations/class-rwf-integration-github.php';
 require_once $base . 'integrations/class-rwf-integration-confluence.php';
+require_once $base . 'integrations/class-rwf-integration-cursor-mcp.php';
+require_once $base . 'class-rwf-integrations.php';

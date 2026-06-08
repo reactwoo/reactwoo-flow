@@ -198,3 +198,15 @@
 .rwf-status-error {
 	color: #b32d2e;
 }
+
+.rwf-status-muted {
+	color: #646970;
+}
+
+.rwf-integration-health-table {
+	margin-top: 12px;
+}
+
+.rwf-integration-test-form {
+	margin-top: 12px;
+}

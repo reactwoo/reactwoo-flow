@@ -139,6 +139,22 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					<?php esc_html_e( 'Export Release Notes', 'reactwoo-flow' ); ?>
 				</a>
 			<?php endif; ?>
+			<?php if ( RWF_CPT::is_qa_review_generated( $post_id ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_qa_review&post_id=' . $post_id ), 'rwf_export_qa_review_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export QA Review', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
+			<?php if ( RWF_CPT::is_ux_review_generated( $post_id ) ) : ?>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_ux_review&post_id=' . $post_id ), 'rwf_export_ux_review_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export UX Review', 'reactwoo-flow' ); ?>
+				</a>
+			<?php endif; ?>
 			<?php if ( RWF_CPT::is_specification_generated( $post_id ) ) : ?>
 				<a
 					class="button"

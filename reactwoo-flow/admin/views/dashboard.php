@@ -45,13 +45,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<?php
+	$show_test_button = false;
+	include RWF_PLUGIN_DIR . 'admin/views/partials/integration-health.php';
+	?>
+
 	<div class="rwf-panel">
-		<h2><?php esc_html_e( 'MVP Scope', 'reactwoo-flow' ); ?></h2>
-		<p><?php esc_html_e( 'ReactWoo Flow currently owns product intake, support desk capture, structured triage fields, agent orchestration, and WordPress-stored specification generation. Cursor is the primary future development executor; Jira, GitHub, Confluence, release notes, QA, and UX integrations are recorded as future placeholders only.', 'reactwoo-flow' ); ?></p>
+		<h2><?php esc_html_e( 'Platform Overview', 'reactwoo-flow' ); ?></h2>
+		<p><?php esc_html_e( 'ReactWoo Flow orchestrates intake, AI triage, specifications, release notes, QA and UX reviews, and handoff to Cursor. Jira, GitHub, and Confluence integrations sync delivery metadata while WordPress remains the source of workflow context.', 'reactwoo-flow' ); ?></p>
 		<ul class="rwf-check-list">
-			<li><?php esc_html_e( 'Single rwf_item custom post type', 'reactwoo-flow' ); ?></li>
-			<li><?php esc_html_e( 'Product, type, priority, status, reporter, and environment fields', 'reactwoo-flow' ); ?></li>
-			<li><?php esc_html_e( 'Provider-agnostic agent execution metadata saved against each item', 'reactwoo-flow' ); ?></li>
+			<li><?php esc_html_e( 'Planning, release, QA, and UX agents with per-item overrides', 'reactwoo-flow' ); ?></li>
+			<li><?php esc_html_e( 'Jira issue creation and status sync', 'reactwoo-flow' ); ?></li>
+			<li><?php esc_html_e( 'GitHub PR metadata and CI status on linked items', 'reactwoo-flow' ); ?></li>
+			<li><?php esc_html_e( 'Confluence specification publishing and Cursor MCP handoff', 'reactwoo-flow' ); ?></li>
 		</ul>
 	</div>
 </div>

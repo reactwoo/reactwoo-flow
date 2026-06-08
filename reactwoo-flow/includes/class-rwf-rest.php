@@ -156,6 +156,23 @@ class RWF_REST {
 				)
 			);
 		}
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/integrations/health',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( __CLASS__, 'get_integration_health' ),
+					'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+				),
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( __CLASS__, 'test_integration_health' ),
+					'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -221,6 +238,15 @@ class RWF_REST {
 		$post_id = absint( $request['id'] );
 
 		return $post_id && RWF_Capabilities::can_edit_item( $post_id );
+	}
+
+	/**
+	 * Permission check for integration health endpoints.
+	 *
+	 * @return bool
+	 */
+	public static function can_manage_settings() {
+		return RWF_Capabilities::can_manage();
 	}
 
 	/**
@@ -501,6 +527,38 @@ class RWF_REST {
 				'item_id'    => $post_id,
 				'ux_review'  => $result,
 				'generated_at' => RWF_CPT::get_meta( $post_id, 'ux_review_generated_at' ),
+			)
+		);
+	}
+
+	/**
+	 * Return integration configuration and last connectivity test results.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function get_integration_health() {
+		return rest_ensure_response(
+			array(
+				'summary'    => RWF_Integrations::get_configuration_summary(),
+				'last_test'  => RWF_Integrations::get_last_test_results(),
+				'tested_at'  => get_option( 'rwf_integration_health_last_test', '' ),
+			)
+		);
+	}
+
+	/**
+	 * Run remote connectivity tests for configured integrations.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function test_integration_health() {
+		$results = RWF_Integrations::test_connections();
+
+		return rest_ensure_response(
+			array(
+				'success'   => true,
+				'results'   => $results,
+				'tested_at' => get_option( 'rwf_integration_health_last_test', '' ),
 			)
 		);
 	}

@@ -26,6 +26,33 @@ class RWF_Integration_Jira {
 	}
 
 	/**
+	 * Verify Jira API credentials.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function test_connection() {
+		if ( ! self::is_configured() ) {
+			return new WP_Error( 'rwf_jira_not_configured', __( 'Jira is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$result = RWF_Integration_Http::request_json(
+			'GET',
+			trailingslashit( self::get_base_url() ) . 'rest/api/3/myself',
+			array(
+				'headers' => array(
+					'Authorization' => self::auth_header(),
+				),
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Create a Jira issue from a flow item.
 	 *
 	 * @param int $post_id Item post ID.

@@ -619,6 +619,10 @@ class RWF_CPT {
 						'label' => __( 'GitHub PR State', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),
+					'github_ci_status'    => array(
+						'label' => __( 'GitHub CI Status', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
 					'confluence_page_id'  => array(
 						'label' => __( 'Confluence Page ID', 'reactwoo-flow' ),
 						'type'  => 'text',

@@ -12,6 +12,25 @@
 
 ---
 
+## v0.3.1
+
+Phase 5 — integration health, exports, and admin polish.
+
+### Added
+
+- `RWF_Integrations` with configuration summary and remote connectivity tests.
+- Integration health panel on Dashboard and Settings; **Test Connections** action.
+- REST `GET/POST /integrations/health`.
+- QA and UX review Markdown exports from the item editor.
+- Inbox bulk action: **Sync Jira Status** for linked items.
+- `github_ci_status` meta field populated during GitHub PR sync.
+
+### Changed
+
+- Dashboard overview copy reflects current integrations and agents.
+
+---
+
 ## v0.3.0
 
 Phase 4 — QA/UX agents, Jira status sync, and workflow automation.

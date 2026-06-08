@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+$message = isset( $_GET['message'] ) ? sanitize_key( wp_unslash( $_GET['message'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
 $sections = array(
 	'agents'     => __( 'Agent Orchestration', 'reactwoo-flow' ),
 	'providers'  => __( 'Provider Connections', 'reactwoo-flow' ),
@@ -22,6 +24,17 @@ $sections = array(
 
 <div class="wrap rwf-wrap">
 	<h1><?php esc_html_e( 'ReactWoo Flow Settings', 'reactwoo-flow' ); ?></h1>
+
+	<?php if ( 'integrations_tested' === $message ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p><?php esc_html_e( 'Integration connectivity test completed. Review the results below.', 'reactwoo-flow' ); ?></p>
+		</div>
+	<?php endif; ?>
+
+	<?php
+	$show_test_button = true;
+	include RWF_PLUGIN_DIR . 'admin/views/partials/integration-health.php';
+	?>
 
 	<form method="post" action="options.php">
 		<?php settings_fields( RWF_Settings::OPTION_GROUP ); ?>

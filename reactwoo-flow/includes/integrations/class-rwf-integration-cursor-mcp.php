@@ -23,6 +23,53 @@ class RWF_Integration_Cursor_MCP {
 	}
 
 	/**
+	 * Verify the Cursor MCP endpoint responds.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function test_connection() {
+		$endpoint = self::get_endpoint();
+		if ( '' === $endpoint ) {
+			return new WP_Error( 'rwf_cursor_mcp_not_configured', __( 'Cursor MCP endpoint is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$response = wp_remote_post(
+			$endpoint,
+			array(
+				'timeout' => 15,
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+				'body'    => wp_json_encode(
+					array(
+						'source'  => 'reactwoo-flow',
+						'ping'    => true,
+						'sent_at' => current_time( 'c' ),
+					)
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 300 ) {
+			return new WP_Error(
+				'rwf_cursor_mcp_http_error',
+				sprintf(
+					/* translators: %d: HTTP status code */
+					__( 'Cursor MCP bridge returned HTTP %d.', 'reactwoo-flow' ),
+					$code
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * POST the development handoff payload to the configured bridge.
 	 *
 	 * @param int $post_id Item post ID.

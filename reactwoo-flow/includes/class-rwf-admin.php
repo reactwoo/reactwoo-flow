@@ -32,6 +32,9 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
 		add_action( 'admin_post_rwf_export_agent_runs', array( __CLASS__, 'handle_export_agent_runs' ) );
 		add_action( 'admin_post_rwf_export_item_context', array( __CLASS__, 'handle_export_item_context' ) );
+		add_action( 'admin_post_rwf_export_qa_review', array( __CLASS__, 'handle_export_qa_review' ) );
+		add_action( 'admin_post_rwf_export_ux_review', array( __CLASS__, 'handle_export_ux_review' ) );
+		add_action( 'admin_post_rwf_test_integrations', array( __CLASS__, 'handle_test_integrations' ) );
 	}
 
 	/**
@@ -172,7 +175,10 @@ class RWF_Admin {
 	 * Render dashboard page.
 	 */
 	public static function render_dashboard() {
-		$stats = self::get_dashboard_stats();
+		$stats                  = self::get_dashboard_stats();
+		$integration_summary    = RWF_Integrations::get_configuration_summary();
+		$integration_test_results = RWF_Integrations::get_last_test_results();
+		$integration_tested_at  = get_option( 'rwf_integration_health_last_test', '' );
 
 		include RWF_PLUGIN_DIR . 'admin/views/dashboard.php';
 	}
@@ -209,6 +215,10 @@ class RWF_Admin {
 	 * Render settings page.
 	 */
 	public static function render_settings() {
+		$integration_summary      = RWF_Integrations::get_configuration_summary();
+		$integration_test_results = RWF_Integrations::get_last_test_results();
+		$integration_tested_at    = get_option( 'rwf_integration_health_last_test', '' );
+
 		include RWF_PLUGIN_DIR . 'admin/views/settings.php';
 	}
 
@@ -355,6 +365,17 @@ class RWF_Admin {
 						$count++;
 					}
 				}
+			} elseif ( 'sync_jira' === $bulk_action ) {
+				if ( '' === RWF_CPT::get_meta( $item_id, 'jira_id' ) ) {
+					$errors++;
+					continue;
+				}
+				$result = RWF_Integration_Jira::sync_issue_status( $item_id );
+				if ( is_wp_error( $result ) ) {
+					$errors++;
+				} else {
+					$count++;
+				}
 			} elseif ( 'archive' === $bulk_action ) {
 				wp_trash_post( $item_id );
 				$count++;
@@ -433,6 +454,96 @@ class RWF_Admin {
 
 		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
 		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-release-notes.md' );
+
+		nocache_headers();
+		header( 'Content-Type: text/markdown; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $file_name . '"' );
+		header( 'Content-Length: ' . strlen( $markdown ) );
+
+		echo $markdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
+	 * Download a generated QA review as Markdown.
+	 */
+	public static function handle_export_qa_review() {
+		self::export_markdown_field(
+			'qa_review_markdown',
+			'qa_review',
+			__( 'You do not have permission to export this QA review.', 'reactwoo-flow' ),
+			__( 'This item does not have a QA review to export.', 'reactwoo-flow' ),
+			'rwf_export_qa_review_'
+		);
+	}
+
+	/**
+	 * Download a generated UX review as Markdown.
+	 */
+	public static function handle_export_ux_review() {
+		self::export_markdown_field(
+			'ux_review_markdown',
+			'ux_review',
+			__( 'You do not have permission to export this UX review.', 'reactwoo-flow' ),
+			__( 'This item does not have a UX review to export.', 'reactwoo-flow' ),
+			'rwf_export_ux_review_'
+		);
+	}
+
+	/**
+	 * Run integration connectivity tests.
+	 */
+	public static function handle_test_integrations() {
+		if ( ! RWF_Capabilities::can_manage() ) {
+			wp_die( esc_html__( 'You do not have permission to test integrations.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_test_integrations' );
+
+		RWF_Integrations::test_connections();
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => self::PAGE_SETTINGS,
+					'message' => 'integrations_tested',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Shared Markdown export handler.
+	 *
+	 * @param string $meta_key      Meta field containing Markdown.
+	 * @param string $suffix        Filename suffix.
+	 * @param string $perm_message    Permission error message.
+	 * @param string $empty_message   Empty content error message.
+	 * @param string $nonce_prefix    Nonce action prefix.
+	 */
+	private static function export_markdown_field( $meta_key, $suffix, $perm_message, $empty_message, $nonce_prefix ) {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
+			wp_die( esc_html( $perm_message ) );
+		}
+
+		check_admin_referer( $nonce_prefix . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		$markdown = RWF_CPT::get_meta( $post_id, $meta_key );
+		if ( '' === trim( $markdown ) ) {
+			wp_die( esc_html( $empty_message ) );
+		}
+
+		$slug      = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$file_name = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-' . $suffix . '.md' );
 
 		nocache_headers();
 		header( 'Content-Type: text/markdown; charset=' . get_option( 'blog_charset' ) );

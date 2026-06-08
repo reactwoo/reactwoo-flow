@@ -24,6 +24,31 @@ class RWF_Integration_GitHub {
 	}
 
 	/**
+	 * Verify GitHub API credentials.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function test_connection() {
+		if ( ! self::is_configured() ) {
+			return new WP_Error( 'rwf_github_not_configured', __( 'GitHub is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$result = RWF_Integration_Http::request_json(
+			'GET',
+			'https://api.github.com/user',
+			array(
+				'headers' => self::auth_headers(),
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Sync pull request metadata for an item.
 	 *
 	 * @param int $post_id Item post ID.
@@ -77,13 +102,54 @@ class RWF_Integration_GitHub {
 		}
 		RWF_CPT::update_meta( $post_id, 'github_pr_state', $state );
 
+		$ci_status = self::fetch_ci_status_for_pull( $pull );
+		if ( '' !== $ci_status ) {
+			RWF_CPT::update_meta( $post_id, 'github_ci_status', $ci_status );
+		}
+
 		return array(
 			'pr_url'          => $html_url,
 			'github_branch'   => $head_ref,
 			'github_pr_state' => $state,
+			'github_ci_status' => $ci_status,
 			'title'           => isset( $pull['title'] ) ? (string) $pull['title'] : '',
 			'number'          => isset( $pull['number'] ) ? (int) $pull['number'] : 0,
 		);
+	}
+
+	/**
+	 * @param array<string, mixed> $pull Pull request payload.
+	 * @return string
+	 */
+	private static function fetch_ci_status_for_pull( $pull ) {
+		if ( ! is_array( $pull ) || empty( $pull['head']['sha'] ) ) {
+			return '';
+		}
+
+		$repo = self::parse_repository();
+		if ( null === $repo ) {
+			return '';
+		}
+
+		$sha    = (string) $pull['head']['sha'];
+		$result = RWF_Integration_Http::request_json(
+			'GET',
+			sprintf(
+				'https://api.github.com/repos/%s/%s/commits/%s/status',
+				$repo['owner'],
+				$repo['repo'],
+				rawurlencode( $sha )
+			),
+			array(
+				'headers' => self::auth_headers(),
+			)
+		);
+
+		if ( is_wp_error( $result ) || ! is_array( $result['data'] ) ) {
+			return '';
+		}
+
+		return isset( $result['data']['state'] ) ? (string) $result['data']['state'] : '';
 	}
 
 	/**

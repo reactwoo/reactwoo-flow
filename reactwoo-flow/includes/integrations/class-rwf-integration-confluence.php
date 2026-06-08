@@ -26,6 +26,34 @@ class RWF_Integration_Confluence {
 	}
 
 	/**
+	 * Verify Confluence API access for the configured space.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function test_connection() {
+		if ( ! self::is_configured() ) {
+			return new WP_Error( 'rwf_confluence_not_configured', __( 'Confluence is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$space = rawurlencode( RWF_Settings::get( 'rwf_confluence_space_key' ) );
+		$result = RWF_Integration_Http::request_json(
+			'GET',
+			trailingslashit( self::get_wiki_base_url() ) . 'rest/api/space/' . $space,
+			array(
+				'headers' => array(
+					'Authorization' => self::auth_header(),
+				),
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Publish the item specification to Confluence.
 	 *
 	 * @param int $post_id Item post ID.

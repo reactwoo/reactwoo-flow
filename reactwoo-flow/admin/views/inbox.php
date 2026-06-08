@@ -32,7 +32,7 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 				echo esc_html(
 					sprintf(
 						/* translators: 1: updated count, 2: error count. */
-						__( '%1$d items updated. %2$d triage agent requests failed.', 'reactwoo-flow' ),
+						__( '%1$d items updated. %2$d requests failed.', 'reactwoo-flow' ),
 						$count,
 						$errors
 					)
@@ -93,6 +93,9 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 					<option value=""><?php esc_html_e( 'Bulk actions', 'reactwoo-flow' ); ?></option>
 					<option value="analyse"><?php esc_html_e( 'Run Triage Agent', 'reactwoo-flow' ); ?></option>
 					<option value="change_status"><?php esc_html_e( 'Change Status', 'reactwoo-flow' ); ?></option>
+					<?php if ( RWF_Integration_Jira::is_configured() ) : ?>
+						<option value="sync_jira"><?php esc_html_e( 'Sync Jira Status', 'reactwoo-flow' ); ?></option>
+					<?php endif; ?>
 					<option value="archive"><?php esc_html_e( 'Archive', 'reactwoo-flow' ); ?></option>
 				</select>
 
