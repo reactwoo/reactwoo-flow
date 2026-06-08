@@ -184,6 +184,28 @@ class RWF_Settings {
 				'default'     => '',
 				'description' => __( 'Refreshes GitHub pull request metadata when handoff is prepared and a PR URL or branch is set.', 'reactwoo-flow' ),
 			),
+			'rwf_auto_apply_suggested_branch' => array(
+				'label'       => __( 'Auto-apply Suggested GitHub Branch', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Copies the triage suggested branch to github_branch when empty.', 'reactwoo-flow' ),
+			),
+			'rwf_auto_apply_default_epic' => array(
+				'label'       => __( 'Auto-apply Default Epic Key', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Copies the Jira default epic key to jira_epic_key when empty after triage.', 'reactwoo-flow' ),
+			),
 			'rwf_intake_notification_email' => array(
 				'label'       => __( 'Intake Notification Email', 'reactwoo-flow' ),
 				'type'        => 'email',
@@ -210,6 +232,18 @@ class RWF_Settings {
 				'label'   => __( 'Jira Project Key', 'reactwoo-flow' ),
 				'type'    => 'text',
 				'section' => 'jira',
+			),
+			'rwf_jira_default_epic_key' => array(
+				'label'       => __( 'Default Epic Issue Key', 'reactwoo-flow' ),
+				'type'        => 'text',
+				'section'     => 'jira',
+				'description' => __( 'Optional. Used when creating Jira issues if the item has no epic key set.', 'reactwoo-flow' ),
+			),
+			'rwf_jira_epic_link_field' => array(
+				'label'       => __( 'Epic Link Custom Field', 'reactwoo-flow' ),
+				'type'        => 'text',
+				'section'     => 'jira',
+				'description' => __( 'Optional. Jira custom field id for epic links (e.g. customfield_10014). Leave empty to use parent linking.', 'reactwoo-flow' ),
 			),
 			'rwf_confluence_space_key' => array(
 				'label'   => __( 'Confluence Space Key', 'reactwoo-flow' ),

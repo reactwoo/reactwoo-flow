@@ -174,6 +174,7 @@ class RWF_REST {
 			'/integrations/jira/sync-status'            => 'sync_jira_status',
 			'/run-qa-review'                            => 'run_qa_review',
 			'/run-ux-review'                            => 'run_ux_review',
+			'/apply-triage-suggestions'                 => 'apply_triage_suggestions',
 		);
 
 		foreach ( $integration_routes as $route => $callback ) {
@@ -648,6 +649,29 @@ class RWF_REST {
 				'success'   => true,
 				'results'   => $results,
 				'tested_at' => get_option( 'rwf_integration_health_last_test', '' ),
+			)
+		);
+	}
+
+	/**
+	 * Apply triage delivery hints to integration fields.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function apply_triage_suggestions( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_AI::apply_triage_suggestions( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'item_id' => $post_id,
+				'applied' => $result,
 			)
 		);
 	}

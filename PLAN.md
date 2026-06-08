@@ -159,6 +159,7 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 4](docs/phases/phase-4.md) | QA/UX agents, Jira sync, workflow automation | Complete (v0.3.0) |
 | [Phase 5](docs/phases/phase-5.md) | Integration health, exports, inbox polish | Complete (v0.3.1) |
 | [Phase 6](docs/phases/phase-6.md) | Delivery visibility, extended automation, items REST | Complete (v0.4.0) |
+| [Phase 7](docs/phases/phase-7.md) | Triage delivery hints, Jira epic linking | Complete (v0.5.0) |
 
 ---
 
@@ -168,7 +169,7 @@ Formal phase docs live under `docs/phases/`.
 
 - Settings placeholders exist (`rwf_jira_url`, email, API token, project key).
 - Item meta field `jira_id` for manual linking today.
-- **Done:** create issue (v0.2.0), sync status (v0.3.0). Future: epic/story from triage output.
+- **Done:** create issue (v0.2.0), sync status (v0.3.0), epic linking on create (v0.5.0).
 
 ## GitHub
 

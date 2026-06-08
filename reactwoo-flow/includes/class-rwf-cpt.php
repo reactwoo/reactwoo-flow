@@ -607,6 +607,11 @@ class RWF_CPT {
 						'label' => __( 'Jira Status Synced At', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),
+					'jira_epic_key'       => array(
+						'label'       => __( 'Jira Epic Key', 'reactwoo-flow' ),
+						'type'        => 'text',
+						'description' => __( 'Epic issue key used when creating a linked Jira issue (e.g. RWF-100).', 'reactwoo-flow' ),
+					),
 					'github_branch'       => array(
 						'label' => __( 'GitHub Branch', 'reactwoo-flow' ),
 						'type'  => 'text',

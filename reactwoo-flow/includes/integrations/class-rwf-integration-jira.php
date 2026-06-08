@@ -103,6 +103,8 @@ class RWF_Integration_Jira {
 			$payload['fields']['labels'] = $labels;
 		}
 
+		self::append_epic_link_fields( $payload['fields'], $post_id );
+
 		$result = RWF_Integration_Http::request_json(
 			'POST',
 			trailingslashit( self::get_base_url() ) . 'rest/api/3/issue',
@@ -137,6 +139,58 @@ class RWF_Integration_Jira {
 			'jira_url' => $issue_url,
 			'remote_id' => $issue_id,
 		);
+	}
+
+	/**
+	 * Resolve the epic issue key for Jira linking.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return string
+	 */
+	public static function resolve_epic_key( $post_id ) {
+		$item_epic = self::normalise_issue_key( RWF_CPT::get_meta( $post_id, 'jira_epic_key' ) );
+		if ( '' !== $item_epic ) {
+			return $item_epic;
+		}
+
+		return self::normalise_issue_key( RWF_Settings::get( 'rwf_jira_default_epic_key' ) );
+	}
+
+	/**
+	 * Append epic link fields to a Jira create-issue payload.
+	 *
+	 * @param array<string, mixed> $fields  Jira fields array (by reference).
+	 * @param int                  $post_id Item post ID.
+	 * @return void
+	 */
+	public static function append_epic_link_fields( &$fields, $post_id ) {
+		$epic_key = self::resolve_epic_key( $post_id );
+		if ( '' === $epic_key ) {
+			return;
+		}
+
+		$link_field = trim( (string) RWF_Settings::get( 'rwf_jira_epic_link_field' ) );
+		if ( '' !== $link_field ) {
+			$fields[ $link_field ] = $epic_key;
+			return;
+		}
+
+		$fields['parent'] = array(
+			'key' => $epic_key,
+		);
+	}
+
+	/**
+	 * @param string $issue_key Raw issue key.
+	 * @return string
+	 */
+	public static function normalise_issue_key( $issue_key ) {
+		$key = strtoupper( trim( (string) $issue_key ) );
+		if ( '' === $key ) {
+			return '';
+		}
+
+		return preg_match( '/^[A-Z][A-Z0-9_]+-\d+$/', $key ) ? $key : '';
 	}
 
 	/**

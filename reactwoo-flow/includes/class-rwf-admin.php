@@ -167,6 +167,10 @@ class RWF_Admin {
 				'syncJiraLabel'         => __( 'Sync Jira Status', 'reactwoo-flow' ),
 				'jiraSyncErrorLabel'    => __( 'Jira status sync failed.', 'reactwoo-flow' ),
 				'jiraSyncDoneLabel'     => __( 'Jira status synced. Refreshing...', 'reactwoo-flow' ),
+				'applyingSuggestions'   => __( 'Applying triage suggestions...', 'reactwoo-flow' ),
+				'applySuggestionsLabel' => __( 'Apply Triage Suggestions', 'reactwoo-flow' ),
+				'suggestionsErrorLabel' => __( 'Could not apply triage suggestions.', 'reactwoo-flow' ),
+				'suggestionsDoneLabel'  => __( 'Triage suggestions applied. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}
@@ -981,8 +985,12 @@ class RWF_Admin {
 			'jira_url'         => RWF_CPT::get_meta( $post_id, 'jira_url' ),
 			'jira_status'      => RWF_CPT::get_meta( $post_id, 'jira_status' ),
 			'pr_url'           => RWF_CPT::get_meta( $post_id, 'pr_url' ),
-			'github_ci_status' => RWF_CPT::get_meta( $post_id, 'github_ci_status' ),
-			'created_at'       => get_the_date( 'c', $post_id ),
+			'github_ci_status'         => RWF_CPT::get_meta( $post_id, 'github_ci_status' ),
+			'github_branch'            => RWF_CPT::get_meta( $post_id, 'github_branch' ),
+			'suggested_github_branch'  => RWF_CPT::get_meta( $post_id, 'suggested_github_branch' ),
+			'jira_epic_key'            => RWF_CPT::get_meta( $post_id, 'jira_epic_key' ),
+			'suggested_epic'           => RWF_CPT::get_meta( $post_id, 'suggested_epic' ),
+			'created_at'               => get_the_date( 'c', $post_id ),
 		);
 	}
 }

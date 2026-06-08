@@ -51,6 +51,15 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 			>
 				<?php esc_html_e( 'Run Triage Agent', 'reactwoo-flow' ); ?>
 			</button>
+			<?php if ( RWF_CPT::is_ai_analyzed( $post_id ) ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-apply-suggestions-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Apply Triage Suggestions', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
 			<button
 				type="button"
 				class="button button-secondary rwf-generate-spec-button"

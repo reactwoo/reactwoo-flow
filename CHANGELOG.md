@@ -12,6 +12,23 @@
 
 ---
 
+## v0.5.0
+
+Phase 7 — triage delivery hints and Jira epic linking.
+
+### Added
+
+- `jira_epic_key` item field; Jira settings for default epic key and epic link custom field.
+- Epic link on Jira issue create (custom field or parent fallback).
+- **Apply Triage Suggestions** action (admin + REST) for branch and default epic.
+- Automation: auto-apply suggested branch and default epic after triage.
+
+### Changed
+
+- REST item summaries include branch, epic, and triage suggestion fields.
+
+---
+
 ## v0.4.0
 
 Phase 6 — delivery visibility and extended automation.

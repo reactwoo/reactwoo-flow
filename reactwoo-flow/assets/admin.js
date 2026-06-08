@@ -188,6 +188,16 @@
 			rwfAdmin.syncJiraLabel
 		);
 
+		bindAgentAction(
+			'.rwf-apply-suggestions-button',
+			'/apply-triage-suggestions',
+			null,
+			rwfAdmin.applyingSuggestions,
+			rwfAdmin.suggestionsDoneLabel,
+			rwfAdmin.suggestionsErrorLabel,
+			rwfAdmin.applySuggestionsLabel
+		);
+
 		$('.rwf-media-button').on('click', function () {
 			var targetId = $(this).data('rwf-media-target');
 			var $target = $('#' + targetId);

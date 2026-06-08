@@ -20,11 +20,51 @@ class RWF_Automation {
 	 * @return void
 	 */
 	public static function after_triage( $post_id ) {
+		if ( RWF_Settings::is_yes( 'rwf_auto_apply_suggested_branch' ) || RWF_Settings::is_yes( 'rwf_auto_apply_default_epic' ) ) {
+			self::apply_triage_suggestions( $post_id, true );
+		}
+
 		if ( RWF_Settings::is_yes( 'rwf_auto_create_jira_on_triage' ) && RWF_Integration_Jira::is_configured() ) {
 			if ( '' === RWF_CPT::get_meta( $post_id, 'jira_id' ) ) {
 				RWF_Integration_Jira::create_issue_from_item( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * Apply triage agent delivery hints to integration fields.
+	 *
+	 * @param int  $post_id Item post ID.
+	 * @param bool $respect_auto_settings When true, only apply fields enabled in automation settings.
+	 * @return array<string, mixed>
+	 */
+	public static function apply_triage_suggestions( $post_id, $respect_auto_settings = false ) {
+		$applied = array(
+			'github_branch' => false,
+			'jira_epic_key' => false,
+		);
+
+		$apply_branch = ! $respect_auto_settings || RWF_Settings::is_yes( 'rwf_auto_apply_suggested_branch' );
+		$apply_epic   = ! $respect_auto_settings || RWF_Settings::is_yes( 'rwf_auto_apply_default_epic' );
+
+		if ( $apply_branch && '' === RWF_CPT::get_meta( $post_id, 'github_branch' ) ) {
+			$suggested = trim( (string) RWF_CPT::get_meta( $post_id, 'suggested_github_branch' ) );
+			if ( '' !== $suggested ) {
+				$branch = str_replace( '{id}', (string) $post_id, $suggested );
+				RWF_CPT::update_meta( $post_id, 'github_branch', sanitize_text_field( $branch ) );
+				$applied['github_branch'] = $branch;
+			}
+		}
+
+		if ( $apply_epic && '' === RWF_CPT::get_meta( $post_id, 'jira_epic_key' ) ) {
+			$epic_key = RWF_Integration_Jira::normalise_issue_key( RWF_Settings::get( 'rwf_jira_default_epic_key' ) );
+			if ( '' !== $epic_key ) {
+				RWF_CPT::update_meta( $post_id, 'jira_epic_key', $epic_key );
+				$applied['jira_epic_key'] = $epic_key;
+			}
+		}
+
+		return $applied;
 	}
 
 	/**

@@ -32,6 +32,25 @@ class RWF_AI {
 	}
 
 	/**
+	 * Apply triage delivery hints to integration fields.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array<string, mixed>
+	 */
+	public static function apply_triage_suggestions( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'rwf_invalid_item', __( 'Invalid ReactWoo Flow item.', 'reactwoo-flow' ) );
+		}
+
+		if ( ! RWF_CPT::is_ai_analyzed( $post_id ) ) {
+			return new WP_Error( 'rwf_not_analyzed', __( 'Run triage before applying suggestions.', 'reactwoo-flow' ) );
+		}
+
+		return RWF_Automation::apply_triage_suggestions( $post_id, false );
+	}
+
+	/**
 	 * Generate a specification and persist it to the item.
 	 *
 	 * @param int $post_id Item post ID.
