@@ -1,0 +1,20 @@
+{
+  "name": "reactwoo/reactwoo-flow",
+  "description": "Agent-orchestrated product intake and support operations platform for ReactWoo.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6"
+  },
+  "scripts": {
+    "test": "phpunit -c phpunit.xml.dist"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

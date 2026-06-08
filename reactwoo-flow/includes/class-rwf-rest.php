@@ -122,6 +122,32 @@ class RWF_REST {
 				),
 			)
 		);
+
+		$integration_routes = array(
+			'/integrations/jira/create-issue'           => 'create_jira_issue',
+			'/integrations/github/sync-pull-request'    => 'sync_github_pull_request',
+			'/integrations/confluence/publish-specification' => 'publish_confluence_specification',
+			'/integrations/cursor/send-handoff'         => 'send_cursor_handoff',
+		);
+
+		foreach ( $integration_routes as $route => $callback ) {
+			register_rest_route(
+				self::NAMESPACE,
+				'/items/(?P<id>\d+)' . $route,
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( __CLASS__, $callback ),
+					'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
+					'args'                => array(
+						'id' => array(
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						),
+					),
+				)
+			);
+		}
 	}
 
 	/**
@@ -304,6 +330,98 @@ class RWF_REST {
 				'item_id'     => $post_id,
 				'handoff'     => $result,
 				'prepared_at' => RWF_CPT::get_meta( $post_id, 'development_handoff_prepared_at' ),
+			)
+		);
+	}
+
+	/**
+	 * Create a Jira issue from an item.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function create_jira_issue( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_Integration_Jira::create_issue_from_item( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'item_id' => $post_id,
+				'jira'    => $result,
+			)
+		);
+	}
+
+	/**
+	 * Sync GitHub pull request metadata for an item.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function sync_github_pull_request( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_Integration_GitHub::sync_pull_request( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'item_id' => $post_id,
+				'github'  => $result,
+			)
+		);
+	}
+
+	/**
+	 * Publish an item specification to Confluence.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function publish_confluence_specification( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_Integration_Confluence::publish_specification( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'    => true,
+				'item_id'    => $post_id,
+				'confluence' => $result,
+			)
+		);
+	}
+
+	/**
+	 * Send a development handoff payload to Cursor MCP.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function send_cursor_handoff( $request ) {
+		$post_id = absint( $request['id'] );
+		$result  = RWF_Integration_Cursor_MCP::send_handoff( $post_id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'item_id' => $post_id,
+				'cursor'  => $result,
 			)
 		);
 	}

@@ -13,9 +13,9 @@ $sections = array(
 	'agents'     => __( 'Agent Orchestration', 'reactwoo-flow' ),
 	'providers'  => __( 'Provider Connections', 'reactwoo-flow' ),
 	'intake'     => __( 'Intake', 'reactwoo-flow' ),
-	'jira'       => __( 'Jira (future)', 'reactwoo-flow' ),
-	'confluence' => __( 'Confluence (future)', 'reactwoo-flow' ),
-	'github'     => __( 'GitHub (future)', 'reactwoo-flow' ),
+	'jira'       => __( 'Jira', 'reactwoo-flow' ),
+	'confluence' => __( 'Confluence', 'reactwoo-flow' ),
+	'github'     => __( 'GitHub', 'reactwoo-flow' ),
 );
 ?>
 
@@ -53,8 +53,12 @@ $sections = array(
 					<p class="description"><?php esc_html_e( 'Provider credentials are execution engines only. ReactWoo Flow owns orchestration and context; Cursor is the preferred future development executor through MCP.', 'reactwoo-flow' ); ?></p>
 				<?php elseif ( 'intake' === $section_key ) : ?>
 					<p class="description"><?php esc_html_e( 'Configure website/support intake behavior before items enter triage.', 'reactwoo-flow' ); ?></p>
-				<?php else : ?>
-					<p class="description"><?php esc_html_e( 'Stored now as planning metadata. Integration logic will be added in a future phase.', 'reactwoo-flow' ); ?></p>
+				<?php elseif ( 'jira' === $section_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Jira Cloud credentials for creating issues from triaged items.', 'reactwoo-flow' ); ?></p>
+				<?php elseif ( 'confluence' === $section_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Uses the same Atlassian email and API token as Jira. Specifications publish to the configured space.', 'reactwoo-flow' ); ?></p>
+				<?php elseif ( 'github' === $section_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Repository and token for syncing pull request metadata onto flow items.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
 				<table class="form-table" role="presentation">

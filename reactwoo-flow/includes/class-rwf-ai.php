@@ -668,7 +668,7 @@ class RWF_AI {
 	 * @param array $data Raw data.
 	 * @return array
 	 */
-	private static function normalise_analysis( $data ) {
+	public static function normalise_analysis( $data ) {
 		$key_map = array(
 			'summary'                      => 'ai_summary',
 			'aiSummary'                    => 'ai_summary',

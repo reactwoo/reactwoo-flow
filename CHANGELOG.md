@@ -12,6 +12,28 @@
 
 ---
 
+## v0.2.0
+
+Phase 3 — external integrations and PHPUnit coverage.
+
+### Added
+
+- Jira integration: create issues from items (`RWF_Integration_Jira`), ADF helper, REST `POST /integrations/jira/create-issue`.
+- GitHub integration: sync PR metadata by URL or branch (`RWF_Integration_GitHub`), REST `POST /integrations/github/sync-pull-request`.
+- Confluence integration: publish specifications (`RWF_Integration_Confluence`), REST `POST /integrations/confluence/publish-specification`.
+- Cursor MCP bridge: send handoff JSON to configured endpoint (`RWF_Integration_Cursor_MCP`), REST `POST /integrations/cursor/send-handoff`.
+- Integration meta fields: `jira_url`, `github_pr_state`, `confluence_page_*`, `cursor_handoff_sent_at`.
+- Settings: `rwf_github_token`, `rwf_confluence_parent_page_id`.
+- PHPUnit suite (`tests/`, `composer.json`, `phpunit.xml.dist`) and `.github/workflows/tests.yml`.
+- Admin item actions for each integration when credentials are configured.
+
+### Changed
+
+- Integrations panel and settings sections are active (no longer “future” placeholders).
+- `RWF_AI::normalise_analysis()` is public for tests and reuse.
+
+---
+
 ## v0.1.3
 
 Post-MVP polish: self-updates and per-item agent overrides.

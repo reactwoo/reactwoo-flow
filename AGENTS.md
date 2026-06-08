@@ -5,7 +5,7 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 ## Defaults
 
 - Prefer **one coherent thread** (read → change → verify). See `PLAN.md` for scope and backlog.
-- **Do not** implement Jira, GitHub, Cursor MCP execution, Playwright QA, or UX review pipelines unless explicitly requested — design for them only.
+- Jira, GitHub, Confluence, and Cursor MCP **send/sync** integrations ship in v0.2.0. Do not add Playwright QA or UX review pipelines unless explicitly requested.
 - **Do not** assume a single AI vendor. Provider logic belongs in `includes/providers/` behind `RWF_Provider_Interface`.
 - WordPress plugin code lives in **`reactwoo-flow/`** (inner install folder). Repo root holds `README.md`, `PLAN.md`, `CHANGELOG.md`.
 
@@ -19,6 +19,7 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 | `RWF_REST` | Authenticated agent and context endpoints |
 | `RWF_Intake` | Public `[reactwoo_flow_intake]` shortcode |
 | `RWF_Updater` | Plugin updates via `api.reactwoo.com` (free slug `reactwoo-flow`) |
+| `RWF_Integration_*` | Jira, GitHub, Confluence, Cursor MCP clients in `includes/integrations/` |
 
 ## Agent types
 
@@ -40,6 +41,7 @@ Per-item fields under **Agent Overrides** on the item editor. Precedence for eac
 - Admin views: `reactwoo-flow/admin/views/`
 - REST namespace: `reactwoo-flow/v1`
 - Packaging: `package.json`, `scripts/package_zip.py` (repo root)
+- Tests: `composer test` (PHPUnit with WP stubs in `tests/bootstrap.php`)
 
 ## Build and release (parity with Geo AI / Geo Core)
 

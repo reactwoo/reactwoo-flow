@@ -150,7 +150,7 @@ Formal phase docs live under `docs/phases/`.
 |-------|-------|--------|
 | [Phase 1](docs/phases/phase-1.md) | MVP foundation (intake → triage → spec → handoff → publish) | Complete (v0.1.2) |
 | [Phase 2](docs/phases/phase-2.md) | Self-updater, per-item agent overrides, doc refresh | Complete (v0.1.3) |
-| [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Planned |
+| [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Complete (v0.2.0) |
 
 ---
 
@@ -207,16 +207,16 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 
 ## Integrations (post-MVP)
 
-10. Jira REST client: create issue from item.
-11. Cursor MCP bridge: POST handoff package to configured endpoint.
-12. GitHub: link PR, poll CI status.
-13. Confluence: publish specification page.
+10. ~~Jira REST client: create issue from item~~ (done v0.2.0)
+11. ~~Cursor MCP bridge: POST handoff package to configured endpoint~~ (done v0.2.0)
+12. ~~GitHub: link PR, poll CI status~~ (done v0.2.0 — PR sync by URL/branch)
+13. ~~Confluence: publish specification page~~ (done v0.2.0)
 
 ## Operations
 
 14. ~~Packaging script / CI (align with other ReactWoo plugins)~~ (done — `package.json`, `scripts/package_zip.py`, `publish-update.yml`)
 15. ~~`.cursor/rules` and `AGENTS.md`~~ (done)
-16. Automated tests (PHPUnit for CPT transitions, REST permissions, analysis normalisation).
+16. ~~Automated tests (PHPUnit for CPT transitions, REST permissions, analysis normalisation)~~ (done v0.2.0)
 17. ~~Register **`reactwoo-flow`** in API `UPDATES_FREE_SLUGS`~~ (done in reactwoo-api v0.1.36)
 18. ~~WordPress self-updater (`RWF_Updater`)~~ (done v0.1.3)
 
@@ -239,6 +239,7 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 - [x] v0.1.2 — Release agent, Anthropic provider, intake uploads, AGENTS.md + Cursor rule
 - [x] R2/API publish pipeline (`package.json`, `package_zip.py`, `publish-update.yml`, release docs)
 - [x] v0.1.3 — Self-updater, per-item agent overrides, phase docs
+- [x] v0.2.0 — Jira, GitHub, Confluence, Cursor MCP integrations + PHPUnit
 
 ---
 

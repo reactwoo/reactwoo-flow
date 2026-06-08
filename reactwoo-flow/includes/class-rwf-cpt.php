@@ -537,21 +537,41 @@ class RWF_CPT {
 				),
 			),
 			'integrations' => array(
-				'title'  => __( 'Future Integrations', 'reactwoo-flow' ),
+				'title'  => __( 'Integrations', 'reactwoo-flow' ),
 				'fields' => array(
-					'jira_id'         => array(
+					'jira_id'             => array(
 						'label' => __( 'Jira ID', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),
-					'github_branch'   => array(
+					'jira_url'            => array(
+						'label' => __( 'Jira URL', 'reactwoo-flow' ),
+						'type'  => 'url',
+					),
+					'github_branch'       => array(
 						'label' => __( 'GitHub Branch', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),
-					'pr_url'          => array(
+					'pr_url'              => array(
 						'label' => __( 'PR URL', 'reactwoo-flow' ),
 						'type'  => 'url',
 					),
-					'release_version' => array(
+					'github_pr_state'     => array(
+						'label' => __( 'GitHub PR State', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'confluence_page_id'  => array(
+						'label' => __( 'Confluence Page ID', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'confluence_page_url' => array(
+						'label' => __( 'Confluence Page URL', 'reactwoo-flow' ),
+						'type'  => 'url',
+					),
+					'cursor_handoff_sent_at' => array(
+						'label' => __( 'Cursor Handoff Sent At', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'release_version'     => array(
 						'label' => __( 'Release Version', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),

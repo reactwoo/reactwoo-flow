@@ -127,7 +127,7 @@ class RWF_Settings {
 				'label'       => __( 'Cursor MCP Bridge Endpoint', 'reactwoo-flow' ),
 				'type'        => 'url',
 				'section'     => 'providers',
-				'description' => __( 'Future bridge endpoint for handing structured tasks to Cursor.', 'reactwoo-flow' ),
+				'description' => __( 'HTTP endpoint that accepts development handoff JSON from ReactWoo Flow.', 'reactwoo-flow' ),
 			),
 			'rwf_intake_notification_email' => array(
 				'label'       => __( 'Intake Notification Email', 'reactwoo-flow' ),
@@ -161,10 +161,23 @@ class RWF_Settings {
 				'type'    => 'text',
 				'section' => 'confluence',
 			),
+			'rwf_confluence_parent_page_id' => array(
+				'label'       => __( 'Confluence Parent Page ID', 'reactwoo-flow' ),
+				'type'        => 'text',
+				'section'     => 'confluence',
+				'description' => __( 'Optional. New specification pages are created under this parent page.', 'reactwoo-flow' ),
+			),
 			'rwf_github_repository'    => array(
-				'label'   => __( 'GitHub Repository', 'reactwoo-flow' ),
-				'type'    => 'text',
-				'section' => 'github',
+				'label'       => __( 'GitHub Repository', 'reactwoo-flow' ),
+				'type'        => 'text',
+				'section'     => 'github',
+				'description' => __( 'Format: owner/repo', 'reactwoo-flow' ),
+			),
+			'rwf_github_token'         => array(
+				'label'             => __( 'GitHub Personal Access Token', 'reactwoo-flow' ),
+				'type'              => 'password',
+				'section'           => 'github',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
 			),
 		);
 	}

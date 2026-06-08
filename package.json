@@ -9,6 +9,7 @@
     "mainPhp": "reactwoo-flow.php"
   },
   "scripts": {
-    "package:zip": "python scripts/package_zip.py"
+    "package:zip": "python scripts/package_zip.py",
+    "test": "composer test"
   }
 }

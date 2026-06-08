@@ -72,6 +72,42 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 			>
 				<?php esc_html_e( 'Prepare Cursor Handoff', 'reactwoo-flow' ); ?>
 			</button>
+			<?php if ( RWF_Integration_Jira::is_configured() && '' === RWF_CPT::get_meta( $post_id, 'jira_id' ) ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-create-jira-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Create Jira Issue', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
+			<?php if ( RWF_Integration_Confluence::is_configured() && RWF_CPT::is_specification_generated( $post_id ) ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-publish-confluence-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Publish to Confluence', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
+			<?php if ( RWF_Integration_GitHub::is_configured() ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-sync-github-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Sync GitHub PR', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
+			<?php if ( RWF_Integration_Cursor_MCP::is_configured() ) : ?>
+				<button
+					type="button"
+					class="button button-secondary rwf-send-cursor-button"
+					data-item-id="<?php echo esc_attr( $post_id ); ?>"
+				>
+					<?php esc_html_e( 'Send to Cursor MCP', 'reactwoo-flow' ); ?>
+				</button>
+			<?php endif; ?>
 			<?php if ( RWF_CPT::is_release_notes_generated( $post_id ) ) : ?>
 				<a
 					class="button"
@@ -296,7 +332,7 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 				<h2><?php echo esc_html( $group['title'] ); ?></h2>
 
 				<?php if ( 'integrations' === $group_key ) : ?>
-					<p class="description"><?php esc_html_e( 'These fields are placeholders for future Jira, GitHub, and release management phases.', 'reactwoo-flow' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Linked Jira, GitHub, and Confluence records. Use the action buttons above to create or sync integrations.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
 				<?php if ( 'ai_analysis' === $group_key && ! $is_existing ) : ?>

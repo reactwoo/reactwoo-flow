@@ -136,6 +136,22 @@ class RWF_Admin {
 				'generateReleaseNotesLabel' => __( 'Generate Release Notes', 'reactwoo-flow' ),
 				'releaseNotesErrorLabel' => __( 'Release notes generation failed. Check settings and try again.', 'reactwoo-flow' ),
 				'releaseNotesDoneLabel' => __( 'Release notes saved. Refreshing...', 'reactwoo-flow' ),
+				'creatingJira'        => __( 'Creating Jira issue...', 'reactwoo-flow' ),
+				'createJiraLabel'       => __( 'Create Jira Issue', 'reactwoo-flow' ),
+				'jiraErrorLabel'        => __( 'Jira issue creation failed. Check Settings and try again.', 'reactwoo-flow' ),
+				'jiraDoneLabel'         => __( 'Jira issue linked. Refreshing...', 'reactwoo-flow' ),
+				'publishingConfluence'  => __( 'Publishing to Confluence...', 'reactwoo-flow' ),
+				'publishConfluenceLabel' => __( 'Publish to Confluence', 'reactwoo-flow' ),
+				'confluenceErrorLabel'  => __( 'Confluence publish failed. Check Settings and try again.', 'reactwoo-flow' ),
+				'confluenceDoneLabel'   => __( 'Specification published. Refreshing...', 'reactwoo-flow' ),
+				'syncingGithub'         => __( 'Syncing GitHub PR...', 'reactwoo-flow' ),
+				'syncGithubLabel'       => __( 'Sync GitHub PR', 'reactwoo-flow' ),
+				'githubErrorLabel'      => __( 'GitHub sync failed. Check repository, token, and branch/PR URL.', 'reactwoo-flow' ),
+				'githubDoneLabel'       => __( 'GitHub PR synced. Refreshing...', 'reactwoo-flow' ),
+				'sendingCursor'         => __( 'Sending to Cursor MCP...', 'reactwoo-flow' ),
+				'sendCursorLabel'       => __( 'Send to Cursor MCP', 'reactwoo-flow' ),
+				'cursorErrorLabel'      => __( 'Cursor MCP handoff failed. Check the bridge endpoint.', 'reactwoo-flow' ),
+				'cursorDoneLabel'       => __( 'Handoff sent to Cursor MCP. Refreshing...', 'reactwoo-flow' ),
 			)
 		);
 	}
