@@ -12,13 +12,32 @@ ReactWoo Flow uses the same **tag-triggered CI publish** pattern as Geo Core and
 | `sourceDir` | `reactwoo-flow` — inner folder containing plugin PHP (repo has docs at root) |
 | `mainPhp` | `reactwoo-flow.php` |
 
+## Repo layout vs WordPress install
+
+This repo is **not** flat like Geo Core (`reactwoo-geocore.php` at repo root). It uses a **docs-at-root** layout:
+
+```text
+reactwoo-flow/                 ← git repo root (PLAN, tests, CI)
+└── reactwoo-flow/             ← WordPress plugin source (sourceDir)
+    └── reactwoo-flow.php
+```
+
+**CI and `package_zip.py` are aligned** with this: `sourceDir` points at the inner folder; the zip contains `reactwoo-flow/reactwoo-flow.php` (correct for `wp-content/plugins/reactwoo-flow/`).
+
+**Local Sites / dev:** If you clone the whole repo into `wp-content/plugins/reactwoo-flow/`, WordPress sees `plugins/reactwoo-flow/reactwoo-flow/` (double folder) and will **not** load the plugin until you either:
+
+- Symlink or copy only the **inner** `reactwoo-flow/` to `wp-content/plugins/reactwoo-flow/`, or
+- Install from the release zip (recommended for non-dev sites).
+
+Build failures on tag push are usually **secrets**, **API publish**, or **version mismatch** — not the nested source layout, as long as `MAIN_PHP` / `sourceDir` in CI match the inner folder.
+
 Local build:
 
 ```bash
 npm run package:zip
 ```
 
-Produces `reactwoo-flow-0.1.2.zip` locally (version suffix). CI sets `CI=true` and emits unversioned `reactwoo-flow.zip` for R2.
+Produces `reactwoo-flow-{version}.zip` locally (version suffix). CI sets `CI=true` and emits unversioned `reactwoo-flow.zip` for R2.
 
 ## Version bump (before tag)
 
