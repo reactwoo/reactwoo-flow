@@ -72,7 +72,40 @@ $sections = array(
 				<?php elseif ( 'confluence' === $section_key ) : ?>
 					<p class="description"><?php esc_html_e( 'Uses the same Atlassian email and API token as Jira. Specifications publish to the configured space.', 'reactwoo-flow' ); ?></p>
 				<?php elseif ( 'github' === $section_key ) : ?>
-					<p class="description"><?php esc_html_e( 'Repository and token for syncing pull request metadata onto flow items.', 'reactwoo-flow' ); ?></p>
+					<p class="description"><?php esc_html_e( 'One personal access token authenticates API calls to every mapped repository. Each satellite product can point at its own GitHub repo.', 'reactwoo-flow' ); ?></p>
+					<div class="notice notice-info inline" style="margin: 12px 0 16px;">
+						<p>
+							<strong><?php esc_html_e( 'GitHub webhook callback URL', 'reactwoo-flow' ); ?></strong>
+						</p>
+						<p>
+							<input
+								type="text"
+								class="large-text code"
+								readonly
+								onfocus="this.select();"
+								value="<?php echo esc_attr( RWF_Integration_GitHub::get_webhook_url() ); ?>"
+							/>
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Add this URL to each satellite repository webhook in GitHub (pull_request and status events). Use the same callback for every repo; Flow matches events to inbox items by repository and branch/PR.', 'reactwoo-flow' ); ?>
+						</p>
+						<?php
+						$webhook_received_at = get_option( 'rwf_github_webhook_last_received_at', '' );
+						if ( '' !== $webhook_received_at ) :
+							?>
+							<p class="description">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: %s: datetime of last webhook. */
+										__( 'Last webhook received: %s', 'reactwoo-flow' ),
+										$webhook_received_at
+									)
+								);
+								?>
+							</p>
+						<?php endif; ?>
+					</div>
 				<?php elseif ( 'automation' === $section_key ) : ?>
 					<p class="description"><?php esc_html_e( 'Optional workflow shortcuts after triage or specification generation. Integrations must be configured first.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
@@ -97,6 +130,13 @@ $sections = array(
 												</option>
 											<?php endforeach; ?>
 										</select>
+									<?php elseif ( 'textarea' === $definition['type'] ) : ?>
+										<textarea
+											id="<?php echo esc_attr( $option_key ); ?>"
+											name="<?php echo esc_attr( $option_key ); ?>"
+											class="large-text code"
+											rows="8"
+										><?php echo esc_textarea( RWF_Settings::get( $option_key ) ); ?></textarea>
 									<?php else : ?>
 										<input
 											id="<?php echo esc_attr( $option_key ); ?>"

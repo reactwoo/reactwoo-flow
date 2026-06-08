@@ -203,6 +203,16 @@ class RWF_REST {
 
 		register_rest_route(
 			self::NAMESPACE,
+			'/integrations/github/webhook',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( __CLASS__, 'github_webhook' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
 			'/integrations/health',
 			array(
 				array(
@@ -649,6 +659,37 @@ class RWF_REST {
 				'success'   => true,
 				'results'   => $results,
 				'tested_at' => get_option( 'rwf_integration_health_last_test', '' ),
+			)
+		);
+	}
+
+	/**
+	 * Receive GitHub webhook events.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function github_webhook( $request ) {
+		$body      = $request->get_body();
+		$signature = (string) $request->get_header( 'x_hub_signature_256' );
+		$event     = (string) $request->get_header( 'x_github_event' );
+
+		if ( ! RWF_Integration_GitHub::verify_webhook_signature( $body, $signature ) ) {
+			return new WP_Error( 'rwf_github_webhook_unauthorized', __( 'Invalid GitHub webhook signature.', 'reactwoo-flow' ), array( 'status' => 401 ) );
+		}
+
+		$payload = json_decode( $body, true );
+		$result  = RWF_Integration_GitHub::handle_webhook_event( $event, is_array( $payload ) ? $payload : array() );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'event'   => $event,
+				'result'  => $result,
 			)
 		);
 	}

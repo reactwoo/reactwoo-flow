@@ -256,17 +256,43 @@ class RWF_Settings {
 				'section'     => 'confluence',
 				'description' => __( 'Optional. New specification pages are created under this parent page.', 'reactwoo-flow' ),
 			),
-			'rwf_github_repository'    => array(
-				'label'       => __( 'GitHub Repository', 'reactwoo-flow' ),
-				'type'        => 'text',
-				'section'     => 'github',
-				'description' => __( 'Format: owner/repo', 'reactwoo-flow' ),
-			),
 			'rwf_github_token'         => array(
 				'label'             => __( 'GitHub Personal Access Token', 'reactwoo-flow' ),
 				'type'              => 'password',
 				'section'           => 'github',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
+				'description'       => __( 'One token with repo scope can call the GitHub API for every mapped repository below.', 'reactwoo-flow' ),
+			),
+			'rwf_github_product_repos' => array(
+				'label'             => __( 'Product Repository Map', 'reactwoo-flow' ),
+				'type'              => 'textarea',
+				'section'           => 'github',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_github_product_repos' ),
+				'description'       => __( 'One line per product: product_slug owner/repo (e.g. geocore_pro reactwoo/reactwoo-geocore-pro). Inbox sync uses the item product to pick the repo.', 'reactwoo-flow' ),
+			),
+			'rwf_github_repository'    => array(
+				'label'       => __( 'Default GitHub Repository', 'reactwoo-flow' ),
+				'type'        => 'text',
+				'section'     => 'github',
+				'description' => __( 'Fallback when an item has no product mapping. Format: owner/repo', 'reactwoo-flow' ),
+			),
+			'rwf_github_webhook_enabled' => array(
+				'label'       => __( 'Enable GitHub Webhook', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'github',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'When enabled, GitHub can POST pull_request and status events to the webhook URL below.', 'reactwoo-flow' ),
+			),
+			'rwf_github_webhook_secret' => array(
+				'label'             => __( 'GitHub Webhook Secret', 'reactwoo-flow' ),
+				'type'              => 'password',
+				'section'           => 'github',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
+				'description'       => __( 'Required when webhooks are enabled. Use the same secret in your GitHub webhook configuration.', 'reactwoo-flow' ),
 			),
 		);
 	}
@@ -334,5 +360,107 @@ class RWF_Settings {
 	 */
 	public static function is_yes( $option_key ) {
 		return 'yes' === self::get( $option_key );
+	}
+
+	/**
+	 * Parse product slug to owner/repo mappings from settings.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function get_github_product_repositories() {
+		$raw   = (string) get_option( 'rwf_github_product_repos', '' );
+		$lines = preg_split( '/\r\n|\r|\n/', $raw );
+		$map   = array();
+
+		if ( ! is_array( $lines ) ) {
+			return $map;
+		}
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+			if ( '' === $line || '#' === $line[0] ) {
+				continue;
+			}
+
+			if ( preg_match( '#^([a-z0-9_]+)\s*[:=]\s*([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)#i', $line, $matches ) ) {
+				$map[ sanitize_key( $matches[1] ) ] = $matches[2];
+			} elseif ( preg_match( '#^([a-z0-9_]+)\s+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)#i', $line, $matches ) ) {
+				$map[ sanitize_key( $matches[1] ) ] = $matches[2];
+			}
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Resolve the GitHub repository for a product slug.
+	 *
+	 * @param string $product_slug Product key from the item.
+	 * @return string owner/repo
+	 */
+	public static function get_github_repository_for_product( $product_slug ) {
+		$map  = self::get_github_product_repositories();
+		$slug = sanitize_key( (string) $product_slug );
+
+		if ( '' !== $slug && isset( $map[ $slug ] ) ) {
+			return $map[ $slug ];
+		}
+
+		return trim( self::get( 'rwf_github_repository' ) );
+	}
+
+	/**
+	 * All configured GitHub repositories (product map + default).
+	 *
+	 * @return string[]
+	 */
+	public static function get_all_github_repositories() {
+		$repos = array_values( self::get_github_product_repositories() );
+		$default = trim( self::get( 'rwf_github_repository' ) );
+
+		if ( '' !== $default ) {
+			$repos[] = $default;
+		}
+
+		return array_values( array_unique( array_filter( $repos ) ) );
+	}
+
+	/**
+	 * Whether at least one repository is configured for GitHub sync.
+	 *
+	 * @return bool
+	 */
+	public static function has_github_repository_config() {
+		return ! empty( self::get_all_github_repositories() );
+	}
+
+	/**
+	 * Sanitize product-to-repository mapping lines.
+	 *
+	 * @param string $value Raw textarea value.
+	 * @return string
+	 */
+	public static function sanitize_github_product_repos( $value ) {
+		$lines = preg_split( '/\r\n|\r|\n/', (string) $value );
+		$clean = array();
+
+		if ( ! is_array( $lines ) ) {
+			return '';
+		}
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+			if ( '' === $line || '#' === $line[0] ) {
+				continue;
+			}
+
+			if ( preg_match( '#^([a-z0-9_]+)\s*[:=]\s*([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)#i', $line, $matches ) ) {
+				$clean[] = sanitize_key( $matches[1] ) . ' ' . $matches[2];
+			} elseif ( preg_match( '#^([a-z0-9_]+)\s+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)#i', $line, $matches ) ) {
+				$clean[] = sanitize_key( $matches[1] ) . ' ' . $matches[2];
+			}
+		}
+
+		return implode( "\n", $clean );
 	}
 }

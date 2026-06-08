@@ -160,6 +160,7 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 5](docs/phases/phase-5.md) | Integration health, exports, inbox polish | Complete (v0.3.1) |
 | [Phase 6](docs/phases/phase-6.md) | Delivery visibility, extended automation, items REST | Complete (v0.4.0) |
 | [Phase 7](docs/phases/phase-7.md) | Triage delivery hints, Jira epic linking | Complete (v0.5.0) |
+| [Phase 8](docs/phases/phase-8.md) | GitHub webhooks for PR/CI sync | Complete (v0.6.0) |
 
 ---
 
@@ -175,7 +176,7 @@ Formal phase docs live under `docs/phases/`.
 
 - Settings placeholder `rwf_github_repository`.
 - Item fields: `github_branch`, `pr_url`, `release_version`.
-- AI suggests branch names; future: create branch/PR webhooks.
+- **Done:** PR/CI webhook sync (v0.6.0). Future: create branch/PR from WordPress.
 
 ## Cursor MCP
 

@@ -167,6 +167,53 @@ if ( ! function_exists( 'current_time' ) ) {
 	}
 }
 
+if ( ! function_exists( 'rwf_test_query_meta_ids' ) ) {
+	/**
+	 * @param array<int, array<string, mixed>> $meta_query Meta query clauses.
+	 * @return int[]
+	 */
+	function rwf_test_query_meta_ids( $meta_query ) {
+		$store = isset( $GLOBALS['rwf_test_post_meta'] ) ? $GLOBALS['rwf_test_post_meta'] : array();
+		$ids   = array();
+
+		foreach ( $store as $post_id => $meta ) {
+			$match = true;
+			foreach ( $meta_query as $clause ) {
+				if ( ! is_array( $clause ) || empty( $clause['key'] ) ) {
+					continue;
+				}
+				$key   = (string) $clause['key'];
+				$value = isset( $clause['value'] ) ? (string) $clause['value'] : '';
+				if ( ! isset( $meta[ $key ] ) || (string) $meta[ $key ] !== $value ) {
+					$match = false;
+					break;
+				}
+			}
+			if ( $match ) {
+				$ids[] = (int) $post_id;
+			}
+		}
+
+		return $ids;
+	}
+}
+
+if ( ! class_exists( 'WP_Query' ) ) {
+	class WP_Query {
+		/** @var int[] */
+		public $posts = array();
+
+		/**
+		 * @param array<string, mixed> $args Query args.
+		 */
+		public function __construct( $args = array() ) {
+			if ( ! empty( $args['meta_query'] ) && is_array( $args['meta_query'] ) ) {
+				$this->posts = rwf_test_query_meta_ids( $args['meta_query'] );
+			}
+		}
+	}
+}
+
 $base = dirname( __DIR__ ) . '/reactwoo-flow/includes/';
 require_once $base . 'class-rwf-capabilities.php';
 require_once $base . 'class-rwf-cpt.php';

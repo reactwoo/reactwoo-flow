@@ -12,6 +12,25 @@
 
 ---
 
+## v0.6.0
+
+Phase 8 — GitHub webhooks for PR and CI updates.
+
+### Added
+
+- GitHub webhook endpoint `POST /integrations/github/webhook` with `X-Hub-Signature-256` validation.
+- Settings: enable webhook + shared secret; webhook callback URL always shown in Settings.
+- Product repository map (`rwf_github_product_repos`) so each satellite product syncs against its own GitHub repo with one shared token.
+- Auto-update linked items on `pull_request` and `status` events (match by repository + `pr_url` or `github_branch`).
+- `github_pr_synced_at` and optional per-item `github_repository` integration meta fields.
+
+### Changed
+
+- GitHub PR sync logic extracted to `apply_pull_payload()` for reuse by webhooks and manual sync.
+- Inbox GitHub sync resolves repository from item override, product map, then default fallback.
+
+---
+
 ## v0.5.0
 
 Phase 7 — triage delivery hints and Jira epic linking.

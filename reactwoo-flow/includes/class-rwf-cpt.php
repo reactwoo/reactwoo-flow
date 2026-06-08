@@ -612,6 +612,11 @@ class RWF_CPT {
 						'type'        => 'text',
 						'description' => __( 'Epic issue key used when creating a linked Jira issue (e.g. RWF-100).', 'reactwoo-flow' ),
 					),
+					'github_repository'   => array(
+						'label'       => __( 'GitHub Repository', 'reactwoo-flow' ),
+						'type'        => 'text',
+						'description' => __( 'Optional override. Format: owner/repo. Otherwise resolved from the item product map in Settings.', 'reactwoo-flow' ),
+					),
 					'github_branch'       => array(
 						'label' => __( 'GitHub Branch', 'reactwoo-flow' ),
 						'type'  => 'text',
@@ -626,6 +631,10 @@ class RWF_CPT {
 					),
 					'github_ci_status'    => array(
 						'label' => __( 'GitHub CI Status', 'reactwoo-flow' ),
+						'type'  => 'text',
+					),
+					'github_pr_synced_at' => array(
+						'label' => __( 'GitHub PR Synced At', 'reactwoo-flow' ),
 						'type'  => 'text',
 					),
 					'confluence_page_id'  => array(
