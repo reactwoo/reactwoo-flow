@@ -5,7 +5,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 
 Internal ReactWoo operations platform for intake, triage, and agent orchestration.
 
@@ -20,6 +20,10 @@ ReactWoo Flow manages product ideas, support tickets, bug reports, and release t
 3. Configure agent providers under **ReactWoo Flow → Settings**.
 
 == Changelog ==
+
+= 0.1.3 =
+* WordPress self-updater via api.reactwoo.com.
+* Per-item agent provider/model overrides for planning, release, and development runs.
 
 = 0.1.2 =
 * Release agent, Anthropic provider, intake file uploads, agent documentation.

@@ -303,6 +303,10 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 					<p class="description"><?php esc_html_e( 'Save the item before running agent analysis.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>
 
+				<?php if ( 'agent_overrides' === $group_key ) : ?>
+					<p class="description"><?php esc_html_e( 'Optional per-item provider and model overrides. Agent action buttons use these values for the next run without saving the item first.', 'reactwoo-flow' ); ?></p>
+				<?php endif; ?>
+
 				<?php if ( 'agent_execution' === $group_key ) : ?>
 					<p class="description"><?php esc_html_e( 'ReactWoo Flow stores orchestration metadata for each agent run: agent type, provider, model, prompt template, context payload, output, and execution status.', 'reactwoo-flow' ); ?></p>
 				<?php endif; ?>

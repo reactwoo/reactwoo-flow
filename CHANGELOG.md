@@ -4,14 +4,28 @@
 
 ### Added
 
-- R2 + API publish pipeline: `package.json`, `scripts/package_zip.py`, `.github/workflows/publish-update.yml`.
-- `readme.txt`, `docs/releases-and-git-tags.md`, `.cursor/rules/release.mdc`, `.gitignore`.
-
 ### Changed
 
 ### Fixed
 
 ### Removed
+
+---
+
+## v0.1.3
+
+Post-MVP polish: self-updates and per-item agent overrides.
+
+### Added
+
+- `RWF_Updater` — WordPress plugin updates via `api.reactwoo.com` (free catalog slug `reactwoo-flow`).
+- Per-item **Agent Overrides** field group (planning, release, development provider/model).
+- Runtime `provider` / `model` JSON body on agent REST endpoints; admin buttons read override fields live.
+- Phase documentation: `docs/phases/phase-1.md`, `phase-2.md`, `phase-3.md`.
+
+### Changed
+
+- `PLAN.md` assessment sections refreshed to match v0.1.2+ reality.
 
 ---
 

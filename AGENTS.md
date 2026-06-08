@@ -18,6 +18,7 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 | `RWF_AI` | Workflow helpers: triage, specification, release notes, handoff, context builders |
 | `RWF_REST` | Authenticated agent and context endpoints |
 | `RWF_Intake` | Public `[reactwoo_flow_intake]` shortcode |
+| `RWF_Updater` | Plugin updates via `api.reactwoo.com` (free slug `reactwoo-flow`) |
 
 ## Agent types
 
@@ -27,6 +28,10 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 | release | OpenAI | Yes (release notes) |
 | development | Cursor MCP | Prepare handoff only |
 | qa / ux | manual / Cursor | Not implemented |
+
+## Agent overrides
+
+Per-item fields under **Agent Overrides** on the item editor. Precedence for each run: REST/runtime body → per-item meta → site Settings defaults.
 
 ## Key paths
 

@@ -567,7 +567,15 @@ class RWF_Admin {
 				<textarea id="<?php echo esc_attr( $name ); ?>" name="<?php echo esc_attr( $name ); ?>" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 			<?php elseif ( 'select' === $type ) : ?>
 				<select id="<?php echo esc_attr( $name ); ?>" name="<?php echo esc_attr( $name ); ?>">
-					<option value=""><?php esc_html_e( 'Select...', 'reactwoo-flow' ); ?></option>
+					<option value="">
+						<?php
+						echo esc_html(
+							isset( $definition['empty_label'] )
+								? $definition['empty_label']
+								: __( 'Select...', 'reactwoo-flow' )
+						);
+						?>
+					</option>
 					<?php foreach ( $definition['options'] as $option_value => $label ) : ?>
 						<option value="<?php echo esc_attr( $option_value ); ?>" <?php selected( $value, $option_value ); ?>>
 							<?php echo esc_html( $label ); ?>

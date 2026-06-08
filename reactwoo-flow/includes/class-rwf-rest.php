@@ -50,12 +50,15 @@ class RWF_REST {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( __CLASS__, 'analyse_item' ),
 				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
-				'args'                => array(
-					'id' => array(
-						'type'              => 'integer',
-						'required'          => true,
-						'sanitize_callback' => 'absint',
+				'args'                => array_merge(
+					array(
+						'id' => array(
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						),
 					),
+					self::agent_override_args()
 				),
 			)
 		);
@@ -67,12 +70,15 @@ class RWF_REST {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( __CLASS__, 'generate_specification' ),
 				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
-				'args'                => array(
-					'id' => array(
-						'type'              => 'integer',
-						'required'          => true,
-						'sanitize_callback' => 'absint',
+				'args'                => array_merge(
+					array(
+						'id' => array(
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						),
 					),
+					self::agent_override_args()
 				),
 			)
 		);
@@ -84,12 +90,15 @@ class RWF_REST {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( __CLASS__, 'prepare_development_handoff' ),
 				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
-				'args'                => array(
-					'id' => array(
-						'type'              => 'integer',
-						'required'          => true,
-						'sanitize_callback' => 'absint',
+				'args'                => array_merge(
+					array(
+						'id' => array(
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						),
 					),
+					self::agent_override_args()
 				),
 			)
 		);
@@ -101,15 +110,59 @@ class RWF_REST {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( __CLASS__, 'generate_release_notes' ),
 				'permission_callback' => array( __CLASS__, 'can_analyse_item' ),
-				'args'                => array(
-					'id' => array(
-						'type'              => 'integer',
-						'required'          => true,
-						'sanitize_callback' => 'absint',
+				'args'                => array_merge(
+					array(
+						'id' => array(
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						),
 					),
+					self::agent_override_args()
 				),
 			)
 		);
+	}
+
+	/**
+	 * Optional provider/model override arguments for agent endpoints.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function agent_override_args() {
+		return array(
+			'provider' => array(
+				'type'              => 'string',
+				'required'          => false,
+				'sanitize_callback' => 'sanitize_key',
+			),
+			'model'    => array(
+				'type'              => 'string',
+				'required'          => false,
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+		);
+	}
+
+	/**
+	 * Parse optional agent overrides from a REST request body.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array<string, string>
+	 */
+	private static function parse_agent_overrides_from_request( $request ) {
+		$overrides = array();
+		$provider  = $request->get_param( 'provider' );
+		$model     = $request->get_param( 'model' );
+
+		if ( is_string( $provider ) && '' !== $provider ) {
+			$overrides['provider'] = $provider;
+		}
+		if ( is_string( $model ) && '' !== trim( $model ) ) {
+			$overrides['model'] = $model;
+		}
+
+		return $overrides;
 	}
 
 	/**
@@ -167,7 +220,7 @@ class RWF_REST {
 	 */
 	public static function analyse_item( $request ) {
 		$post_id = absint( $request['id'] );
-		$result  = RWF_AI::analyse_and_save( $post_id );
+		$result  = RWF_AI::analyse_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -191,7 +244,7 @@ class RWF_REST {
 	 */
 	public static function generate_specification( $request ) {
 		$post_id = absint( $request['id'] );
-		$result  = RWF_AI::generate_specification_and_save( $post_id );
+		$result  = RWF_AI::generate_specification_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -215,7 +268,7 @@ class RWF_REST {
 	 */
 	public static function generate_release_notes( $request ) {
 		$post_id = absint( $request['id'] );
-		$result  = RWF_AI::generate_release_notes_and_save( $post_id );
+		$result  = RWF_AI::generate_release_notes_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -239,7 +292,7 @@ class RWF_REST {
 	 */
 	public static function prepare_development_handoff( $request ) {
 		$post_id = absint( $request['id'] );
-		$result  = RWF_AI::prepare_development_handoff_and_save( $post_id );
+		$result  = RWF_AI::prepare_development_handoff_and_save( $post_id, self::parse_agent_overrides_from_request( $request ) );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;

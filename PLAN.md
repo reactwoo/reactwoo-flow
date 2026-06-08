@@ -84,9 +84,9 @@ Agent types (configured in settings, executed via `RWF_Agent`):
 | Development | Cursor MCP | **Prepare only** (handoff package, no remote execution) |
 | QA | Manual / future vision model | Not implemented |
 | UX | Cursor MCP | Not implemented |
-| Release | OpenAI / GPT | Not implemented |
+| Release | OpenAI / GPT | **Executable** (release notes) |
 
-Provider registry: `openai`, `cursor_mcp` (future), `anthropic` (future), `manual`.
+Provider registry: `openai`, `anthropic`, `cursor_mcp` (prepare-only), `manual`.
 
 ## AI layer
 
@@ -117,7 +117,7 @@ Build **only** what is listed below until MVP is declared complete. Design for f
 | Inbox (filters, bulk actions) | Done |
 | Item management (CRUD, workflow transitions) | Done |
 | Technical environment capture | Done |
-| Attachments (URL/text fields; media library on item form) | Partial |
+| Attachments (URL/text fields; media library; intake uploads) | Done |
 | AI triage (planning agent via OpenAI) | Done |
 | Structured AI outputs | Done |
 | Specification generation (Markdown) | Done |
@@ -137,8 +137,20 @@ Build **only** what is listed below until MVP is declared complete. Design for f
 - GitHub integration (branches, PRs, status)
 - Playwright / automated QA pipeline
 - AI UX review pipeline
-- Release agent automation
-- Anthropic or other provider adapters beyond OpenAI
+- Remote Cursor MCP execution
+- Jira / GitHub / Confluence automation
+
+---
+
+# Phases
+
+Formal phase docs live under `docs/phases/`.
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| [Phase 1](docs/phases/phase-1.md) | MVP foundation (intake → triage → spec → handoff → publish) | Complete (v0.1.2) |
+| [Phase 2](docs/phases/phase-2.md) | Self-updater, per-item agent overrides, doc refresh | Complete (v0.1.3) |
+| [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Planned |
 
 ---
 
@@ -167,7 +179,7 @@ Build **only** what is listed below until MVP is declared complete. Design for f
 - Settings placeholder `rwf_confluence_space_key`.
 - Future: publish specifications to space.
 
-## QA / UX / Release agents
+## QA / UX agents
 
 - Agent types defined in `RWF_Agent::get_agent_types()`.
 - Prompt templates and execution paths not yet built.
@@ -191,7 +203,7 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 6. ~~Provider adapter interface (`RWF_Provider_Interface`) extracted from `RWF_Agent`~~ (done v0.1.1)
 7. ~~Anthropic adapter~~ (done v0.1.2)
 8. ~~Release agent: changelog/release-notes prompt + execution path~~ (done v0.1.2)
-9. Per-item agent override UI (choose provider/model for a single run).
+9. ~~Per-item agent override UI (choose provider/model for a single run)~~ (done v0.1.3)
 
 ## Integrations (post-MVP)
 
@@ -206,6 +218,7 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 15. ~~`.cursor/rules` and `AGENTS.md`~~ (done)
 16. Automated tests (PHPUnit for CPT transitions, REST permissions, analysis normalisation).
 17. ~~Register **`reactwoo-flow`** in API `UPDATES_FREE_SLUGS`~~ (done in reactwoo-api v0.1.36)
+18. ~~WordPress self-updater (`RWF_Updater`)~~ (done v0.1.3)
 
 ---
 
@@ -225,6 +238,7 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 - [x] Project documentation (`README.md`, `CHANGELOG.md`, `PLAN.md`)
 - [x] v0.1.2 — Release agent, Anthropic provider, intake uploads, AGENTS.md + Cursor rule
 - [x] R2/API publish pipeline (`package.json`, `package_zip.py`, `publish-update.yml`, release docs)
+- [x] v0.1.3 — Self-updater, per-item agent overrides, phase docs
 
 ---
 
@@ -255,7 +269,7 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 | ~~`edit_posts` capability for all Flow admin~~ | — | Replaced with `edit_rwf_items` / `manage_rwf` in v0.1.1 |
 | ~~Admin JS hides provider error details~~ | — | REST messages surfaced in v0.1.1 |
 | `RWF_AI` class name implies vendor-specific AI | Low | Works as workflow facade; consider rename to `RWF_Workflow` later |
-| OpenAI-only executable provider | Expected | Anthropic available when API key configured; Cursor MCP prepare-only |
+| Multiple executable providers | Low | OpenAI and Anthropic when API keys configured; Cursor MCP prepare-only |
 | Bulk "analyse" can timeout on large batches | Low | Synchronous OpenAI calls in admin-post handler |
 | Legacy option `rwf_openai_model` fallback | Low | Migration shim in `RWF_Settings::get_agent_model()` |
 | No uninstall cleanup | Low | Meta remains on deactivation (WordPress default) |
@@ -269,13 +283,13 @@ Internal review baseline for continuing development.
 ## Current structure
 
 - **Folders:** `includes/`, `includes/providers/`, `admin/views/`, `assets/`, `prompts/`
-- **Classes:** 9 + 2 providers (`RWF_Capabilities`, `RWF_Provider_OpenAI`, `RWF_Provider_Cursor_MCP`, …)
+- **Classes:** 11 + 3 providers (`RWF_Capabilities`, `RWF_Updater`, `RWF_Uploads`, `RWF_Provider_OpenAI`, `RWF_Provider_Anthropic`, `RWF_Provider_Cursor_MCP`, …)
 - **Admin pages:** Dashboard, Inbox, Item (hidden submenu), Settings
 - **CPTs:** `rwf_item` only
 - **Settings:** Agent provider/model per type, OpenAI key, Cursor MCP endpoint, intake email, Jira/Confluence/GitHub placeholders
 - **AI:** Planning agent via OpenAI; handoff preparation without execution; prompt-driven JSON/Markdown outputs
 - **Database:** WordPress posts + postmeta only
-- **REST:** 4 routes under `reactwoo-flow/v1`
+- **REST:** 5 routes under `reactwoo-flow/v1`
 
 ## Gap vs vision
 
@@ -284,7 +298,9 @@ Internal review baseline for continuing development.
 | Orchestration platform scope | **Aligned** — schema and workflow cover full operational model |
 | Agent abstraction | **Done** — provider interface + OpenAI/Cursor MCP adapters |
 | Release task type | **Done** (v0.1.1) |
-| File uploads | **Partial** — admin media library for screenshots; intake still URL/text |
+| File uploads | **Done** — admin media library + intake multipart uploads |
+| Self-updates | **Done** (v0.1.3) — `RWF_Updater` via free catalog slug |
+| Per-item agent overrides | **Done** (v0.1.3) |
 | Future integrations | **Designed, not built** — as intended for MVP |
 
 ## Technical debt / refactoring opportunities
@@ -292,5 +308,5 @@ Internal review baseline for continuing development.
 - ~~Extract provider adapters from `RWF_Agent`~~ (done v0.1.1)
 - Rename or clarify `RWF_AI` as workflow service (not vendor-specific)
 - ~~Tighten capabilities~~ (done v0.1.1)
-- Media upload on public intake form
+- ~~Media upload on public intake form~~ (done v0.1.2)
 - Consider flattening repo layout (`reactwoo-flow/` as direct plugin root) for simpler Local Sites install

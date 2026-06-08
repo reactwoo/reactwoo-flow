@@ -19,8 +19,8 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return array|WP_Error
 	 */
-	public static function analyse_and_save( $post_id ) {
-		$analysis = self::analyse_item( $post_id );
+	public static function analyse_and_save( $post_id, $overrides = array() ) {
+		$analysis = self::analyse_item( $post_id, $overrides );
 
 		if ( is_wp_error( $analysis ) ) {
 			return $analysis;
@@ -37,8 +37,8 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return string|WP_Error
 	 */
-	public static function generate_specification_and_save( $post_id ) {
-		$specification = self::generate_specification( $post_id );
+	public static function generate_specification_and_save( $post_id, $overrides = array() ) {
+		$specification = self::generate_specification( $post_id, $overrides );
 
 		if ( is_wp_error( $specification ) ) {
 			return $specification;
@@ -55,8 +55,8 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return string|WP_Error
 	 */
-	public static function generate_release_notes_and_save( $post_id ) {
-		$release_notes = self::generate_release_notes( $post_id );
+	public static function generate_release_notes_and_save( $post_id, $overrides = array() ) {
+		$release_notes = self::generate_release_notes( $post_id, $overrides );
 
 		if ( is_wp_error( $release_notes ) ) {
 			return $release_notes;
@@ -73,7 +73,7 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return array|WP_Error
 	 */
-	public static function prepare_development_handoff_and_save( $post_id ) {
+	public static function prepare_development_handoff_and_save( $post_id, $overrides = array() ) {
 		$post = get_post( $post_id );
 
 		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
@@ -81,12 +81,17 @@ class RWF_AI {
 		}
 
 		$agent = RWF_Agent::prepare_agent(
-			array(
-				'name'            => __( 'Cursor Development Handoff', 'reactwoo-flow' ),
-				'agent_type'      => 'development',
-				'prompt_template' => 'cursor-development-handoff.md',
-				'input_context'   => self::build_development_handoff_context( $post_id ),
-				'timeout'         => 0,
+			self::merge_agent_args(
+				'development',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'Cursor Development Handoff', 'reactwoo-flow' ),
+					'agent_type'      => 'development',
+					'prompt_template' => 'cursor-development-handoff.md',
+					'input_context'   => self::build_development_handoff_context( $post_id ),
+					'timeout'         => 0,
+				)
 			)
 		);
 
@@ -111,7 +116,7 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return array|WP_Error
 	 */
-	public static function analyse_item( $post_id ) {
+	public static function analyse_item( $post_id, $overrides = array() ) {
 		$post = get_post( $post_id );
 
 		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
@@ -119,14 +124,19 @@ class RWF_AI {
 		}
 
 		$agent = RWF_Agent::execute(
-			array(
-				'name'            => __( 'Planning Triage', 'reactwoo-flow' ),
-				'agent_type'      => 'planning',
-				'prompt_template' => 'analyse-item.md',
-				'input_context'   => self::build_item_context( $post_id ),
-				'timeout'         => 45,
-				'temperature'     => 0.2,
-				'response_format' => array( 'type' => 'json_object' ),
+			self::merge_agent_args(
+				'planning',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'Planning Triage', 'reactwoo-flow' ),
+					'agent_type'      => 'planning',
+					'prompt_template' => 'analyse-item.md',
+					'input_context'   => self::build_item_context( $post_id ),
+					'timeout'         => 45,
+					'temperature'     => 0.2,
+					'response_format' => array( 'type' => 'json_object' ),
+				)
 			)
 		);
 
@@ -154,7 +164,7 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return string|WP_Error
 	 */
-	public static function generate_specification( $post_id ) {
+	public static function generate_specification( $post_id, $overrides = array() ) {
 		$post = get_post( $post_id );
 
 		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
@@ -162,12 +172,17 @@ class RWF_AI {
 		}
 
 		$agent = RWF_Agent::execute(
-			array(
-				'name'            => __( 'Specification Generator', 'reactwoo-flow' ),
-				'agent_type'      => 'planning',
-				'prompt_template' => 'generate-spec.md',
-				'input_context'   => self::build_specification_context( $post_id ),
-				'timeout'         => 60,
+			self::merge_agent_args(
+				'planning',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'Specification Generator', 'reactwoo-flow' ),
+					'agent_type'      => 'planning',
+					'prompt_template' => 'generate-spec.md',
+					'input_context'   => self::build_specification_context( $post_id ),
+					'timeout'         => 60,
+				)
 			)
 		);
 
@@ -187,7 +202,7 @@ class RWF_AI {
 	 * @param int $post_id Item post ID.
 	 * @return string|WP_Error
 	 */
-	public static function generate_release_notes( $post_id ) {
+	public static function generate_release_notes( $post_id, $overrides = array() ) {
 		$post = get_post( $post_id );
 
 		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
@@ -195,12 +210,17 @@ class RWF_AI {
 		}
 
 		$agent = RWF_Agent::execute(
-			array(
-				'name'            => __( 'Release Notes Generator', 'reactwoo-flow' ),
-				'agent_type'      => 'release',
-				'prompt_template' => 'generate-release-notes.md',
-				'input_context'   => self::build_release_context( $post_id ),
-				'timeout'         => 60,
+			self::merge_agent_args(
+				'release',
+				$post_id,
+				$overrides,
+				array(
+					'name'            => __( 'Release Notes Generator', 'reactwoo-flow' ),
+					'agent_type'      => 'release',
+					'prompt_template' => 'generate-release-notes.md',
+					'input_context'   => self::build_release_context( $post_id ),
+					'timeout'         => 60,
+				)
 			)
 		);
 
@@ -231,7 +251,7 @@ class RWF_AI {
 		);
 
 		foreach ( RWF_CPT::get_field_groups() as $group_key => $group ) {
-			if ( in_array( $group_key, array( 'agent_execution', 'ai_analysis', 'specification', 'release_notes', 'integrations' ), true ) ) {
+			if ( in_array( $group_key, array( 'agent_overrides', 'agent_execution', 'ai_analysis', 'specification', 'release_notes', 'integrations' ), true ) ) {
 				continue;
 			}
 
@@ -517,6 +537,71 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'release_notes_raw_response', $release_notes );
 		RWF_CPT::update_meta( $post_id, 'release_notes_generated', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'release_notes_generated_at', current_time( 'mysql' ) );
+	}
+
+	/**
+	 * Merge runtime and per-item provider/model overrides into agent args.
+	 *
+	 * @param string               $agent_type        Agent type key.
+	 * @param int                  $post_id           Item post ID.
+	 * @param array<string, mixed> $runtime_overrides Optional one-off overrides.
+	 * @param array<string, mixed> $base_args         Base agent arguments.
+	 * @return array<string, mixed>
+	 */
+	private static function merge_agent_args( $agent_type, $post_id, $runtime_overrides, $base_args ) {
+		$resolved = self::resolve_agent_overrides( $post_id, $agent_type, $runtime_overrides );
+
+		if ( '' !== $resolved['provider'] ) {
+			$base_args['provider'] = $resolved['provider'];
+		}
+		if ( '' !== $resolved['model'] ) {
+			$base_args['model'] = $resolved['model'];
+		}
+
+		return $base_args;
+	}
+
+	/**
+	 * Resolve provider/model for an agent run.
+	 *
+	 * Precedence: runtime overrides, then per-item meta, then site settings (via RWF_Agent::prepare_agent).
+	 *
+	 * @param int                  $post_id           Item post ID.
+	 * @param string               $agent_type        Agent type key.
+	 * @param array<string, mixed> $runtime_overrides Optional one-off overrides.
+	 * @return array{provider: string, model: string}
+	 */
+	public static function resolve_agent_overrides( $post_id, $agent_type, $runtime_overrides = array() ) {
+		$agent_type = sanitize_key( $agent_type );
+		$resolved   = array(
+			'provider' => '',
+			'model'    => '',
+		);
+
+		if ( is_array( $runtime_overrides ) ) {
+			if ( ! empty( $runtime_overrides['provider'] ) ) {
+				$resolved['provider'] = sanitize_key( (string) $runtime_overrides['provider'] );
+			}
+			if ( ! empty( $runtime_overrides['model'] ) ) {
+				$resolved['model'] = sanitize_text_field( (string) $runtime_overrides['model'] );
+			}
+		}
+
+		if ( '' === $resolved['provider'] ) {
+			$meta_provider = RWF_CPT::get_meta( $post_id, 'override_' . $agent_type . '_provider' );
+			if ( is_string( $meta_provider ) && '' !== $meta_provider ) {
+				$resolved['provider'] = sanitize_key( $meta_provider );
+			}
+		}
+
+		if ( '' === $resolved['model'] ) {
+			$meta_model = RWF_CPT::get_meta( $post_id, 'override_' . $agent_type . '_model' );
+			if ( is_string( $meta_model ) && '' !== trim( $meta_model ) ) {
+				$resolved['model'] = sanitize_text_field( $meta_model );
+			}
+		}
+
+		return $resolved;
 	}
 
 	/**

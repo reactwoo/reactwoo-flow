@@ -335,6 +335,47 @@ class RWF_CPT {
 					),
 				),
 			),
+			'agent_overrides' => array(
+				'title'  => __( 'Agent Overrides', 'reactwoo-flow' ),
+				'fields' => array(
+					'override_planning_provider' => array(
+						'label'       => __( 'Planning Provider', 'reactwoo-flow' ),
+						'type'        => 'select',
+						'options'     => RWF_Agent::get_providers(),
+						'description' => __( 'Optional per-item override for triage and specification runs.', 'reactwoo-flow' ),
+						'empty_label' => __( 'Site default', 'reactwoo-flow' ),
+					),
+					'override_planning_model' => array(
+						'label'       => __( 'Planning Model', 'reactwoo-flow' ),
+						'type'        => 'text',
+						'description' => __( 'Leave empty to use the site default model.', 'reactwoo-flow' ),
+					),
+					'override_release_provider' => array(
+						'label'       => __( 'Release Provider', 'reactwoo-flow' ),
+						'type'        => 'select',
+						'options'     => RWF_Agent::get_providers(),
+						'description' => __( 'Optional per-item override for release notes runs.', 'reactwoo-flow' ),
+						'empty_label' => __( 'Site default', 'reactwoo-flow' ),
+					),
+					'override_release_model' => array(
+						'label'       => __( 'Release Model', 'reactwoo-flow' ),
+						'type'        => 'text',
+						'description' => __( 'Leave empty to use the site default model.', 'reactwoo-flow' ),
+					),
+					'override_development_provider' => array(
+						'label'       => __( 'Development Provider', 'reactwoo-flow' ),
+						'type'        => 'select',
+						'options'     => RWF_Agent::get_providers(),
+						'description' => __( 'Optional per-item override for Cursor handoff preparation.', 'reactwoo-flow' ),
+						'empty_label' => __( 'Site default', 'reactwoo-flow' ),
+					),
+					'override_development_model' => array(
+						'label'       => __( 'Development Model', 'reactwoo-flow' ),
+						'type'        => 'text',
+						'description' => __( 'Leave empty to use the site default model.', 'reactwoo-flow' ),
+					),
+				),
+			),
 			'attachments'  => array(
 				'title'  => __( 'Attachments', 'reactwoo-flow' ),
 				'fields' => array(

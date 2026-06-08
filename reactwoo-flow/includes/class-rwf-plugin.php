@@ -45,6 +45,8 @@ final class RWF_Plugin {
 		RWF_Admin::init();
 		RWF_REST::init();
 		RWF_Intake::init();
+
+		add_action( 'init', array( 'RWF_Updater', 'init' ), 0 );
 	}
 
 	/**
@@ -64,6 +66,7 @@ final class RWF_Plugin {
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-rest.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-admin.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-intake.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-updater.php';
 	}
 
 	/**
