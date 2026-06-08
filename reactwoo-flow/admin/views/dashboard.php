@@ -40,6 +40,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<span class="rwf-stat-label"><?php esc_html_e( 'Ready for QA', 'reactwoo-flow' ); ?></span>
 		</div>
 		<div class="rwf-stat-card">
+			<span class="rwf-stat-number"><?php echo esc_html( $stats['ready_for_release'] ); ?></span>
+			<span class="rwf-stat-label"><?php esc_html_e( 'Ready for Release', 'reactwoo-flow' ); ?></span>
+		</div>
+		<div class="rwf-stat-card">
 			<span class="rwf-stat-number"><?php echo esc_html( $stats['released_month'] ); ?></span>
 			<span class="rwf-stat-label"><?php esc_html_e( 'Released This Month', 'reactwoo-flow' ); ?></span>
 		</div>

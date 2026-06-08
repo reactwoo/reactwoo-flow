@@ -151,6 +151,39 @@ class RWF_Settings {
 				'default'     => '',
 				'description' => __( 'Moves items from Ready for Specification to Ready for Development after a spec is generated.', 'reactwoo-flow' ),
 			),
+			'rwf_auto_publish_confluence_on_spec' => array(
+				'label'       => __( 'Auto-publish Confluence After Specification', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Publishes the specification to Confluence when generation succeeds and no page is linked yet.', 'reactwoo-flow' ),
+			),
+			'rwf_auto_send_cursor_on_handoff' => array(
+				'label'       => __( 'Auto-send Cursor MCP After Handoff', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'POSTs the development handoff to the configured Cursor MCP endpoint after handoff preparation.', 'reactwoo-flow' ),
+			),
+			'rwf_auto_sync_github_on_handoff' => array(
+				'label'       => __( 'Auto-sync GitHub PR After Handoff', 'reactwoo-flow' ),
+				'type'        => 'select',
+				'section'     => 'automation',
+				'options'     => array(
+					''    => __( 'No', 'reactwoo-flow' ),
+					'yes' => __( 'Yes', 'reactwoo-flow' ),
+				),
+				'default'     => '',
+				'description' => __( 'Refreshes GitHub pull request metadata when handoff is prepared and a PR URL or branch is set.', 'reactwoo-flow' ),
+			),
 			'rwf_intake_notification_email' => array(
 				'label'       => __( 'Intake Notification Email', 'reactwoo-flow' ),
 				'type'        => 'email',

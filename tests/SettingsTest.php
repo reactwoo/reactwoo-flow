@@ -21,4 +21,10 @@ class SettingsTest extends TestCase {
 	public function test_is_yes_returns_false_for_empty_value() {
 		$this->assertFalse( RWF_Settings::is_yes( 'rwf_auto_create_jira_on_triage' ) );
 	}
+
+	public function test_handoff_automation_settings_default_to_no() {
+		$this->assertFalse( RWF_Settings::is_yes( 'rwf_auto_publish_confluence_on_spec' ) );
+		$this->assertFalse( RWF_Settings::is_yes( 'rwf_auto_send_cursor_on_handoff' ) );
+		$this->assertFalse( RWF_Settings::is_yes( 'rwf_auto_sync_github_on_handoff' ) );
+	}
 }

@@ -28,6 +28,49 @@ class RWF_REST {
 	public static function register_routes() {
 		register_rest_route(
 			self::NAMESPACE,
+			'/items',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'list_items' ),
+				'permission_callback' => array( __CLASS__, 'can_list_items' ),
+				'args'                => array(
+					's'           => array(
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'product'     => array(
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'item_type'   => array(
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'status'      => array(
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'integration' => array(
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'per_page'    => array(
+						'type'              => 'integer',
+						'required'          => false,
+						'default'           => 50,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
 			'/items/(?P<id>\d+)/context',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
@@ -247,6 +290,52 @@ class RWF_REST {
 	 */
 	public static function can_manage_settings() {
 		return RWF_Capabilities::can_manage();
+	}
+
+	/**
+	 * Permission check for item list endpoint.
+	 *
+	 * @return bool
+	 */
+	public static function can_list_items() {
+		return RWF_Capabilities::can_edit_items();
+	}
+
+	/**
+	 * List flow items with optional filters.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public static function list_items( $request ) {
+		$filters = array(
+			's'           => (string) $request->get_param( 's' ),
+			'product'     => (string) $request->get_param( 'product' ),
+			'item_type'   => (string) $request->get_param( 'item_type' ),
+			'status'      => (string) $request->get_param( 'status' ),
+			'integration' => (string) $request->get_param( 'integration' ),
+		);
+		$per_page = absint( $request->get_param( 'per_page' ) );
+		$query    = RWF_Admin::build_items_query( $filters, $per_page ? $per_page : 50 );
+		$items    = array();
+
+		if ( $query->have_posts() ) {
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				$summary = RWF_Admin::format_item_summary( get_the_ID() );
+				if ( ! empty( $summary ) ) {
+					$items[] = $summary;
+				}
+			}
+			wp_reset_postdata();
+		}
+
+		return rest_ensure_response(
+			array(
+				'items' => $items,
+				'total' => (int) $query->found_posts,
+			)
+		);
 	}
 
 	/**

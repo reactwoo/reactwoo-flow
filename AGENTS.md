@@ -20,6 +20,8 @@ ReactWoo Flow is an **internal WordPress operations plugin** for product intake,
 | `RWF_Intake` | Public `[reactwoo_flow_intake]` shortcode |
 | `RWF_Updater` | Plugin updates via `api.reactwoo.com` (free slug `reactwoo-flow`) |
 | `RWF_Integration_*` | Jira, GitHub, Confluence, Cursor MCP clients in `includes/integrations/` |
+| `RWF_Automation` | Post-triage, post-spec, and post-handoff workflow shortcuts |
+| `RWF_Integrations` | Integration configuration summary and connectivity tests |
 
 ## Agent types
 

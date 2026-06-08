@@ -12,6 +12,24 @@
 
 ---
 
+## v0.4.0
+
+Phase 6 — delivery visibility and extended automation.
+
+### Added
+
+- Inbox Jira and GitHub CI columns; integration filter (linked Jira, linked PR, no Jira).
+- Workflow automation: auto-publish Confluence, auto-send Cursor MCP, auto-sync GitHub after handoff.
+- Inbox bulk action: **Sync GitHub PR**.
+- REST `GET /items` with status/product/integration filters.
+- Dashboard **Ready for Release** stat card.
+
+### Changed
+
+- Shared `RWF_Admin::build_items_query()` and `format_item_summary()` for inbox and REST.
+
+---
+
 ## v0.3.1
 
 Phase 5 — integration health, exports, and admin polish.

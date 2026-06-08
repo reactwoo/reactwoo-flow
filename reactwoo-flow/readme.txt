@@ -5,7 +5,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Stable tag: 0.3.1
+Stable tag: 0.4.0
 
 Internal ReactWoo operations platform for intake, triage, and agent orchestration.
 

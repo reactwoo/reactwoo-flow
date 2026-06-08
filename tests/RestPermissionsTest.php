@@ -26,6 +26,16 @@ class RestPermissionsTest extends TestCase {
 
 		$this->assertTrue( RWF_REST::can_analyse_item( $request ) );
 	}
+
+	public function test_list_items_permission_denied_without_capability() {
+		$this->assertFalse( RWF_REST::can_list_items() );
+	}
+
+	public function test_list_items_permission_granted_with_edit_items_capability() {
+		$GLOBALS['rwf_test_caps']['edit_rwf_items'] = true;
+
+		$this->assertTrue( RWF_REST::can_list_items() );
+	}
 }
 
 /**

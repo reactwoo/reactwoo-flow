@@ -78,6 +78,13 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 				<?php endforeach; ?>
 			</select>
 
+			<select name="integration">
+				<option value=""><?php esc_html_e( 'All Integrations', 'reactwoo-flow' ); ?></option>
+				<option value="has_jira" <?php selected( $filters['integration'], 'has_jira' ); ?>><?php esc_html_e( 'Linked Jira', 'reactwoo-flow' ); ?></option>
+				<option value="has_pr" <?php selected( $filters['integration'], 'has_pr' ); ?>><?php esc_html_e( 'Linked PR', 'reactwoo-flow' ); ?></option>
+				<option value="no_jira" <?php selected( $filters['integration'], 'no_jira' ); ?>><?php esc_html_e( 'No Jira Link', 'reactwoo-flow' ); ?></option>
+			</select>
+
 			<button class="button" type="submit"><?php esc_html_e( 'Filter', 'reactwoo-flow' ); ?></button>
 		</div>
 	</form>
@@ -95,6 +102,9 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 					<option value="change_status"><?php esc_html_e( 'Change Status', 'reactwoo-flow' ); ?></option>
 					<?php if ( RWF_Integration_Jira::is_configured() ) : ?>
 						<option value="sync_jira"><?php esc_html_e( 'Sync Jira Status', 'reactwoo-flow' ); ?></option>
+					<?php endif; ?>
+					<?php if ( RWF_Integration_GitHub::is_configured() ) : ?>
+						<option value="sync_github"><?php esc_html_e( 'Sync GitHub PR', 'reactwoo-flow' ); ?></option>
 					<?php endif; ?>
 					<option value="archive"><?php esc_html_e( 'Archive', 'reactwoo-flow' ); ?></option>
 				</select>
@@ -121,6 +131,8 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 					<th><?php esc_html_e( 'Type', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Priority', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Status', 'reactwoo-flow' ); ?></th>
+					<th><?php esc_html_e( 'Jira', 'reactwoo-flow' ); ?></th>
+					<th><?php esc_html_e( 'GitHub CI', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Agent Analysed', 'reactwoo-flow' ); ?></th>
 					<th><?php esc_html_e( 'Created Date', 'reactwoo-flow' ); ?></th>
 				</tr>
@@ -134,7 +146,11 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 						$product  = RWF_CPT::get_meta( $item_id, 'product' );
 						$type     = RWF_CPT::get_meta( $item_id, 'item_type' );
 						$priority = RWF_CPT::get_meta( $item_id, 'priority' );
-						$status   = RWF_CPT::get_meta( $item_id, 'status' );
+						$status      = RWF_CPT::get_meta( $item_id, 'status' );
+						$jira_id     = RWF_CPT::get_meta( $item_id, 'jira_id' );
+						$jira_url    = RWF_CPT::get_meta( $item_id, 'jira_url' );
+						$jira_status = RWF_CPT::get_meta( $item_id, 'jira_status' );
+						$ci_status   = RWF_CPT::get_meta( $item_id, 'github_ci_status' );
 						?>
 						<tr>
 							<th scope="row" class="check-column">
@@ -151,6 +167,27 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 							<td><span class="rwf-pill rwf-pill-priority"><?php echo esc_html( RWF_CPT::option_label( RWF_CPT::get_priorities(), $priority ) ); ?></span></td>
 							<td><span class="rwf-pill"><?php echo esc_html( RWF_CPT::option_label( RWF_CPT::get_statuses(), $status ) ); ?></span></td>
 							<td>
+								<?php if ( '' !== $jira_id ) : ?>
+									<?php if ( '' !== $jira_url ) : ?>
+										<a href="<?php echo esc_url( $jira_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $jira_id ); ?></a>
+									<?php else : ?>
+										<?php echo esc_html( $jira_id ); ?>
+									<?php endif; ?>
+									<?php if ( '' !== $jira_status ) : ?>
+										<br><span class="description"><?php echo esc_html( $jira_status ); ?></span>
+									<?php endif; ?>
+								<?php else : ?>
+									<span class="description">—</span>
+								<?php endif; ?>
+							</td>
+							<td>
+								<?php if ( '' !== $ci_status ) : ?>
+									<span class="rwf-pill rwf-pill-ci rwf-pill-ci-<?php echo esc_attr( sanitize_html_class( $ci_status ) ); ?>"><?php echo esc_html( $ci_status ); ?></span>
+								<?php else : ?>
+									<span class="description">—</span>
+								<?php endif; ?>
+							</td>
+							<td>
 								<?php if ( RWF_CPT::is_ai_analyzed( $item_id ) ) : ?>
 									<span class="rwf-ai-yes"><?php esc_html_e( 'Yes', 'reactwoo-flow' ); ?></span>
 								<?php else : ?>
@@ -163,7 +200,7 @@ $errors  = isset( $_GET['errors'] ) ? absint( $_GET['errors'] ) : 0; // phpcs:ig
 					<?php wp_reset_postdata(); ?>
 				<?php else : ?>
 					<tr>
-						<td colspan="9"><?php esc_html_e( 'No ReactWoo Flow items found.', 'reactwoo-flow' ); ?></td>
+						<td colspan="11"><?php esc_html_e( 'No ReactWoo Flow items found.', 'reactwoo-flow' ); ?></td>
 					</tr>
 				<?php endif; ?>
 			</tbody>

@@ -145,6 +145,8 @@ class RWF_AI {
 		RWF_CPT::update_meta( $post_id, 'development_handoff_prepared', 'yes' );
 		RWF_CPT::update_meta( $post_id, 'development_handoff_prepared_at', current_time( 'mysql' ) );
 
+		RWF_Automation::after_handoff( $post_id );
+
 		return $agent;
 	}
 

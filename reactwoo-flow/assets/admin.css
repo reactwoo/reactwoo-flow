@@ -210,3 +210,19 @@
 .rwf-integration-test-form {
 	margin-top: 12px;
 }
+
+.rwf-pill-ci-success {
+	background: #d8f3dc;
+	color: #1b4332;
+}
+
+.rwf-pill-ci-failure,
+.rwf-pill-ci-error {
+	background: #fde8e8;
+	color: #7f1d1d;
+}
+
+.rwf-pill-ci-pending {
+	background: #fff3cd;
+	color: #664d03;
+}

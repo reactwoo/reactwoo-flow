@@ -158,6 +158,7 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 3](docs/phases/phase-3.md) | Integrations (Jira, Cursor MCP, GitHub, Confluence) + PHPUnit | Complete (v0.2.0) |
 | [Phase 4](docs/phases/phase-4.md) | QA/UX agents, Jira sync, workflow automation | Complete (v0.3.0) |
 | [Phase 5](docs/phases/phase-5.md) | Integration health, exports, inbox polish | Complete (v0.3.1) |
+| [Phase 6](docs/phases/phase-6.md) | Delivery visibility, extended automation, items REST | Complete (v0.4.0) |
 
 ---
 

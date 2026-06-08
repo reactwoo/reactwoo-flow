@@ -376,6 +376,19 @@ class RWF_Admin {
 				} else {
 					$count++;
 				}
+			} elseif ( 'sync_github' === $bulk_action ) {
+				$pr_url = RWF_CPT::get_meta( $item_id, 'pr_url' );
+				$branch = RWF_CPT::get_meta( $item_id, 'github_branch' );
+				if ( '' === $pr_url && '' === $branch ) {
+					$errors++;
+					continue;
+				}
+				$result = RWF_Integration_GitHub::sync_pull_request( $item_id );
+				if ( is_wp_error( $result ) ) {
+					$errors++;
+				} else {
+					$count++;
+				}
 			} elseif ( 'archive' === $bulk_action ) {
 				wp_trash_post( $item_id );
 				$count++;
@@ -739,14 +752,15 @@ class RWF_Admin {
 	 */
 	private static function get_dashboard_stats() {
 		return array(
-			'new'             => self::count_items_by_status( 'new' ),
-			'needs_triage'    => self::count_items_by_status( 'needs_triage' ),
-			'in_development'  => self::count_items_by_status( 'in_development' ),
-			'ready_for_qa'    => self::count_items_by_status( 'ready_for_qa' ),
-			'released_month'  => self::count_released_this_month(),
-			'total_open'      => self::count_open_items(),
-			'ai_analysed'     => self::count_ai_analysed(),
-			'awaiting_action' => self::count_items_by_status( 'awaiting_information' ),
+			'new'              => self::count_items_by_status( 'new' ),
+			'needs_triage'     => self::count_items_by_status( 'needs_triage' ),
+			'in_development'   => self::count_items_by_status( 'in_development' ),
+			'ready_for_qa'     => self::count_items_by_status( 'ready_for_qa' ),
+			'ready_for_release' => self::count_items_by_status( 'ready_for_release' ),
+			'released_month'   => self::count_released_this_month(),
+			'total_open'       => self::count_open_items(),
+			'ai_analysed'      => self::count_ai_analysed(),
+			'awaiting_action'  => self::count_items_by_status( 'awaiting_information' ),
 		);
 	}
 
@@ -854,10 +868,11 @@ class RWF_Admin {
 	 */
 	private static function get_current_filters() {
 		return array(
-			's'         => isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			'product'   => isset( $_GET['product'] ) ? sanitize_key( wp_unslash( $_GET['product'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			'item_type' => isset( $_GET['item_type'] ) ? sanitize_key( wp_unslash( $_GET['item_type'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			'status'    => isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			's'           => isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'product'     => isset( $_GET['product'] ) ? sanitize_key( wp_unslash( $_GET['product'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'item_type'   => isset( $_GET['item_type'] ) ? sanitize_key( wp_unslash( $_GET['item_type'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'status'      => isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'integration' => isset( $_GET['integration'] ) ? sanitize_key( wp_unslash( $_GET['integration'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		);
 	}
 
@@ -867,11 +882,21 @@ class RWF_Admin {
 	 * @return WP_Query
 	 */
 	private static function get_inbox_query() {
-		$filters    = self::get_current_filters();
+		return self::build_items_query( self::get_current_filters() );
+	}
+
+	/**
+	 * Build a filtered item query for inbox and REST list endpoints.
+	 *
+	 * @param array<string, string> $filters Filter keys: s, product, item_type, status, integration.
+	 * @param int                   $per_page Posts per page.
+	 * @return WP_Query
+	 */
+	public static function build_items_query( $filters, $per_page = 50 ) {
 		$meta_query = array();
 
 		foreach ( array( 'product', 'item_type', 'status' ) as $filter_key ) {
-			if ( '' !== $filters[ $filter_key ] ) {
+			if ( ! empty( $filters[ $filter_key ] ) ) {
 				$meta_query[] = array(
 					'key'   => RWF_CPT::meta_key( $filter_key ),
 					'value' => $filters[ $filter_key ],
@@ -879,13 +904,41 @@ class RWF_Admin {
 			}
 		}
 
+		$integration = isset( $filters['integration'] ) ? $filters['integration'] : '';
+		if ( 'has_jira' === $integration ) {
+			$meta_query[] = array(
+				'key'     => RWF_CPT::meta_key( 'jira_id' ),
+				'value'   => '',
+				'compare' => '!=',
+			);
+		} elseif ( 'has_pr' === $integration ) {
+			$meta_query[] = array(
+				'key'     => RWF_CPT::meta_key( 'pr_url' ),
+				'value'   => '',
+				'compare' => '!=',
+			);
+		} elseif ( 'no_jira' === $integration ) {
+			$meta_query[] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => RWF_CPT::meta_key( 'jira_id' ),
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => RWF_CPT::meta_key( 'jira_id' ),
+					'value'   => '',
+					'compare' => '=',
+				),
+			);
+		}
+
 		$args = array(
 			'post_type'      => RWF_CPT::POST_TYPE,
 			'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
-			'posts_per_page' => 50,
+			'posts_per_page' => max( 1, min( 100, (int) $per_page ) ),
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-			's'              => $filters['s'],
+			's'              => isset( $filters['s'] ) ? $filters['s'] : '',
 		);
 
 		if ( ! empty( $meta_query ) ) {
@@ -893,5 +946,43 @@ class RWF_Admin {
 		}
 
 		return new WP_Query( $args );
+	}
+
+	/**
+	 * Summarise an item for inbox and REST list responses.
+	 *
+	 * @param int $post_id Item post ID.
+	 * @return array<string, mixed>
+	 */
+	public static function format_item_summary( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			return array();
+		}
+
+		$status   = RWF_CPT::get_meta( $post_id, 'status' );
+		$product  = RWF_CPT::get_meta( $post_id, 'product' );
+		$type     = RWF_CPT::get_meta( $post_id, 'item_type' );
+		$priority = RWF_CPT::get_meta( $post_id, 'priority' );
+
+		return array(
+			'id'               => $post_id,
+			'title'            => get_the_title( $post_id ),
+			'product'          => $product,
+			'product_label'    => RWF_CPT::option_label( RWF_CPT::get_products(), $product ),
+			'item_type'        => $type,
+			'item_type_label'  => RWF_CPT::option_label( RWF_CPT::get_item_types(), $type ),
+			'priority'         => $priority,
+			'priority_label'   => RWF_CPT::option_label( RWF_CPT::get_priorities(), $priority ),
+			'status'           => $status,
+			'status_label'     => RWF_CPT::option_label( RWF_CPT::get_statuses(), $status ),
+			'ai_analyzed'      => RWF_CPT::is_ai_analyzed( $post_id ),
+			'jira_id'          => RWF_CPT::get_meta( $post_id, 'jira_id' ),
+			'jira_url'         => RWF_CPT::get_meta( $post_id, 'jira_url' ),
+			'jira_status'      => RWF_CPT::get_meta( $post_id, 'jira_status' ),
+			'pr_url'           => RWF_CPT::get_meta( $post_id, 'pr_url' ),
+			'github_ci_status' => RWF_CPT::get_meta( $post_id, 'github_ci_status' ),
+			'created_at'       => get_the_date( 'c', $post_id ),
+		);
 	}
 }
