@@ -198,6 +198,71 @@
 			rwfAdmin.applySuggestionsLabel
 		);
 
+		function populateGithubRepoSelect($select, repositories) {
+			var selected = $select.data('selected') || $select.val() || '';
+			var placeholder = (window.rwfAdmin.githubSettings && rwfAdmin.githubSettings.selectRepository) || '— Select repository —';
+
+			$select.empty();
+			$select.append($('<option>', { value: '', text: placeholder }));
+
+			repositories.forEach(function (repo) {
+				if (!repo || !repo.full_name) {
+					return;
+				}
+
+				var option = $('<option>', {
+					value: repo.full_name,
+					text: repo.full_name
+				});
+
+				if (repo.full_name === selected) {
+					option.prop('selected', true);
+				}
+
+				$select.append(option);
+			});
+		}
+
+		function loadGithubRepositories() {
+			var settings = window.rwfAdmin && rwfAdmin.githubSettings;
+			var $status = $('#rwf-github-repos-status');
+			var $selects = $('#rwf-github-product-map .rwf-github-repo-select');
+
+			if (!settings || !$selects.length) {
+				return;
+			}
+
+			if (!settings.hasToken) {
+				$status.text(settings.saveTokenToLoadRepos || '');
+				return;
+			}
+
+			$status.text(settings.loadingRepositories || '');
+
+			window.fetch(settings.repositoriesUrl, {
+				headers: {
+					'X-WP-Nonce': rwfAdmin.restNonce
+				}
+			})
+				.then(function (response) {
+					return parseRestResponse(response, settings.repositoriesFailed || 'Failed to load repositories.');
+				})
+				.then(function (body) {
+					var repositories = body && body.repositories ? body.repositories : [];
+
+					$selects.each(function () {
+						populateGithubRepoSelect($(this), repositories);
+					});
+
+					$status.text(settings.repositoriesLoaded || '');
+				})
+				.catch(function (error) {
+					$status.text(error.message || settings.repositoriesFailed || '');
+				});
+		}
+
+		loadGithubRepositories();
+
 		$('.rwf-media-button').on('click', function () {
 			var targetId = $(this).data('rwf-media-target');
 			var $target = $('#' + targetId);

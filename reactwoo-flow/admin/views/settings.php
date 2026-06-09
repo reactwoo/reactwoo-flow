@@ -87,7 +87,7 @@ $sections = array(
 							/>
 						</p>
 						<p class="description">
-							<?php esc_html_e( 'Add this URL to each satellite repository webhook in GitHub (pull_request and status events). Use the same callback for every repo; Flow matches events to inbox items by repository and branch/PR.', 'reactwoo-flow' ); ?>
+							<?php esc_html_e( 'Add this URL to each mapped repository webhook in GitHub (pull_request and status events). Use the per-product webhook secret from the map below in each repo’s GitHub webhook settings.', 'reactwoo-flow' ); ?>
 						</p>
 						<?php
 						$webhook_received_at = get_option( 'rwf_github_webhook_last_received_at', '' );
@@ -152,6 +152,9 @@ $sections = array(
 									<?php endif; ?>
 								</td>
 							</tr>
+							<?php if ( 'github' === $section_key && 'rwf_github_token' === $option_key ) : ?>
+								<?php include RWF_PLUGIN_DIR . 'admin/views/partials/settings-github-product-map.php'; ?>
+							<?php endif; ?>
 						<?php endforeach; ?>
 					</tbody>
 				</table>

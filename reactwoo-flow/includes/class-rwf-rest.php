@@ -213,6 +213,16 @@ class RWF_REST {
 
 		register_rest_route(
 			self::NAMESPACE,
+			'/integrations/github/repositories',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'list_github_repositories' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
 			'/integrations/health',
 			array(
 				array(
@@ -673,13 +683,21 @@ class RWF_REST {
 		$body      = $request->get_body();
 		$signature = (string) $request->get_header( 'x_hub_signature_256' );
 		$event     = (string) $request->get_header( 'x_github_event' );
+		$payload   = json_decode( $body, true );
+		$payload   = is_array( $payload ) ? $payload : array();
+		$repository = '';
 
-		if ( ! RWF_Integration_GitHub::verify_webhook_signature( $body, $signature ) ) {
+		if ( ! empty( $payload['repository']['full_name'] ) ) {
+			$repository = (string) $payload['repository']['full_name'];
+		} elseif ( ! empty( $payload['pull_request']['base']['repo']['full_name'] ) ) {
+			$repository = (string) $payload['pull_request']['base']['repo']['full_name'];
+		}
+
+		if ( ! RWF_Integration_GitHub::verify_webhook_signature( $body, $signature, $repository ) ) {
 			return new WP_Error( 'rwf_github_webhook_unauthorized', __( 'Invalid GitHub webhook signature.', 'reactwoo-flow' ), array( 'status' => 401 ) );
 		}
 
-		$payload = json_decode( $body, true );
-		$result  = RWF_Integration_GitHub::handle_webhook_event( $event, is_array( $payload ) ? $payload : array() );
+		$result = RWF_Integration_GitHub::handle_webhook_event( $event, $payload );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -690,6 +708,25 @@ class RWF_REST {
 				'success' => true,
 				'event'   => $event,
 				'result'  => $result,
+			)
+		);
+	}
+
+	/**
+	 * List GitHub repositories for Settings product mapping.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function list_github_repositories() {
+		$result = RWF_Integration_GitHub::list_accessible_repositories();
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'repositories' => $result,
 			)
 		);
 	}

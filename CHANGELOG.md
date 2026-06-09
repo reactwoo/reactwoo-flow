@@ -12,6 +12,27 @@
 
 ---
 
+## v0.6.1
+
+GitHub settings UX — product repo selects and per-repo webhook secrets.
+
+### Added
+
+- Product repository map UI: one GitHub repo select per product, populated from the API after a token is saved.
+- `GET /integrations/github/repositories` for Settings (admin).
+
+### Changed
+
+- Removed default GitHub repository setting; repo resolution uses item product mapping only.
+- Webhook HMAC verification uses the secret configured for the repository that sent the event (not one global secret).
+- Legacy textarea map and global webhook secret migrate into the new product map on load.
+
+### Removed
+
+- Settings fields: default GitHub repository, global webhook secret, manual product map textarea.
+
+---
+
 ## v0.6.0
 
 Phase 8 — GitHub webhooks for PR and CI updates.

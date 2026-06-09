@@ -117,10 +117,7 @@ class RWF_Admin {
 
 		wp_enqueue_media();
 
-		wp_localize_script(
-			'rwf-admin',
-			'rwfAdmin',
-			array(
+		$localize = array(
 				'restUrl'      => esc_url_raw( rest_url( RWF_REST::NAMESPACE ) ),
 				'restNonce'    => wp_create_nonce( 'wp_rest' ),
 				'analysing'         => __( 'Analysing...', 'reactwoo-flow' ),
@@ -171,8 +168,21 @@ class RWF_Admin {
 				'applySuggestionsLabel' => __( 'Apply Triage Suggestions', 'reactwoo-flow' ),
 				'suggestionsErrorLabel' => __( 'Could not apply triage suggestions.', 'reactwoo-flow' ),
 				'suggestionsDoneLabel'  => __( 'Triage suggestions applied. Refreshing...', 'reactwoo-flow' ),
-			)
 		);
+
+		if ( self::PAGE_SETTINGS === $page ) {
+			$localize['githubSettings'] = array(
+				'hasToken'              => '' !== RWF_Settings::get( 'rwf_github_token' ),
+				'repositoriesUrl'       => esc_url_raw( rest_url( RWF_REST::NAMESPACE . '/integrations/github/repositories' ) ),
+				'loadingRepositories'   => __( 'Loading repositories from GitHub…', 'reactwoo-flow' ),
+				'repositoriesLoaded'    => __( 'Repositories loaded. Choose one per product.', 'reactwoo-flow' ),
+				'repositoriesFailed'    => __( 'Could not load repositories. Check the token and try saving again.', 'reactwoo-flow' ),
+				'selectRepository'      => __( '— Select repository —', 'reactwoo-flow' ),
+				'saveTokenToLoadRepos'  => __( 'Save a GitHub personal access token to load repository choices.', 'reactwoo-flow' ),
+			);
+		}
+
+		wp_localize_script( 'rwf-admin', 'rwfAdmin', $localize );
 	}
 
 	/**

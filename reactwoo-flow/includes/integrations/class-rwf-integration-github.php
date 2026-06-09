@@ -160,18 +160,90 @@ class RWF_Integration_GitHub {
 	 */
 	public static function is_webhook_enabled() {
 		return RWF_Settings::is_yes( 'rwf_github_webhook_enabled' )
-			&& '' !== RWF_Settings::get( 'rwf_github_webhook_secret' );
+			&& RWF_Settings::has_github_webhook_secrets();
 	}
 
 	/**
-	 * Validate GitHub webhook signature.
+	 * List GitHub repositories accessible to the configured token.
 	 *
-	 * @param string $body      Raw request body.
-	 * @param string $signature X-Hub-Signature-256 header value.
+	 * @return array<int, array{full_name: string, name: string, private: bool}>|WP_Error
+	 */
+	public static function list_accessible_repositories() {
+		if ( '' === RWF_Settings::get( 'rwf_github_token' ) ) {
+			return new WP_Error( 'rwf_github_not_configured', __( 'GitHub token is not configured.', 'reactwoo-flow' ) );
+		}
+
+		$repos   = array();
+		$seen    = array();
+		$page    = 1;
+		$headers = self::auth_headers();
+
+		while ( $page <= 5 ) {
+			$query = add_query_arg(
+				array(
+					'per_page'    => 100,
+					'page'        => $page,
+					'affiliation' => 'owner,organization_member',
+					'sort'        => 'full_name',
+					'direction'   => 'asc',
+				),
+				'https://api.github.com/user/repos'
+			);
+
+			$result = RWF_Integration_Http::request_json(
+				'GET',
+				$query,
+				array(
+					'headers' => $headers,
+				)
+			);
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+
+			if ( ! is_array( $result['data'] ) || empty( $result['data'] ) ) {
+				break;
+			}
+
+			foreach ( $result['data'] as $repo ) {
+				if ( ! is_array( $repo ) || empty( $repo['full_name'] ) ) {
+					continue;
+				}
+
+				$full_name = (string) $repo['full_name'];
+				if ( isset( $seen[ $full_name ] ) ) {
+					continue;
+				}
+
+				$seen[ $full_name ] = true;
+				$repos[]            = array(
+					'full_name' => $full_name,
+					'name'      => isset( $repo['name'] ) ? (string) $repo['name'] : '',
+					'private'   => ! empty( $repo['private'] ),
+				);
+			}
+
+			if ( count( $result['data'] ) < 100 ) {
+				break;
+			}
+
+			++$page;
+		}
+
+		return $repos;
+	}
+
+	/**
+	 * Validate GitHub webhook signature for a repository.
+	 *
+	 * @param string $body                  Raw request body.
+	 * @param string $signature             X-Hub-Signature-256 header value.
+	 * @param string $repository_full_name  owner/repo from the webhook payload.
 	 * @return bool
 	 */
-	public static function verify_webhook_signature( $body, $signature ) {
-		$secret = RWF_Settings::get( 'rwf_github_webhook_secret' );
+	public static function verify_webhook_signature( $body, $signature, $repository_full_name = '' ) {
+		$secret = RWF_Settings::get_github_webhook_secret_for_repository( $repository_full_name );
 		if ( '' === $secret || '' === $signature ) {
 			return false;
 		}
@@ -502,10 +574,6 @@ class RWF_Integration_GitHub {
 	 * @return array{owner: string, repo: string}|null
 	 */
 	private static function parse_repository( $repository = '' ) {
-		if ( '' === $repository ) {
-			$repository = trim( RWF_Settings::get( 'rwf_github_repository' ) );
-		}
-
 		if ( ! self::is_valid_repository( $repository ) ) {
 			return null;
 		}

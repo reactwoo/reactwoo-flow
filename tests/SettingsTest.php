@@ -28,23 +28,40 @@ class SettingsTest extends TestCase {
 		$this->assertFalse( RWF_Settings::is_yes( 'rwf_auto_sync_github_on_handoff' ) );
 	}
 
-	public function test_github_product_repository_map_parses_lines() {
-		$GLOBALS['rwf_test_options']['rwf_github_product_repos'] = "geocore_pro reactwoo/reactwoo-geocore-pro\napi_platform: reactwoo/reactwoo-api";
-
-		$map = RWF_Settings::get_github_product_repositories();
+	public function test_github_product_map_returns_repository_per_slug() {
+		$GLOBALS['rwf_test_options']['rwf_github_product_map'] = array(
+			'geocore_pro'  => array(
+				'repository'     => 'reactwoo/reactwoo-geocore-pro',
+				'webhook_secret' => 'secret-a',
+			),
+			'api_platform' => array(
+				'repository'     => 'reactwoo/reactwoo-api',
+				'webhook_secret' => 'secret-b',
+			),
+		);
 
 		$this->assertSame(
 			array(
 				'geocore_pro'  => 'reactwoo/reactwoo-geocore-pro',
 				'api_platform' => 'reactwoo/reactwoo-api',
 			),
-			$map
+			RWF_Settings::get_github_product_repositories()
 		);
 	}
 
-	public function test_github_repository_for_product_falls_back_to_default() {
-		$GLOBALS['rwf_test_options']['rwf_github_repository'] = 'reactwoo/reactwoo-flow';
+	public function test_github_repository_for_product_returns_empty_when_unmapped() {
+		$this->assertSame( '', RWF_Settings::get_github_repository_for_product( 'unknown_product' ) );
+	}
 
-		$this->assertSame( 'reactwoo/reactwoo-flow', RWF_Settings::get_github_repository_for_product( 'unknown_product' ) );
+	public function test_github_webhook_secret_resolves_by_repository() {
+		$GLOBALS['rwf_test_options']['rwf_github_product_map'] = array(
+			'geocore_pro' => array(
+				'repository'     => 'reactwoo/reactwoo-geocore-pro',
+				'webhook_secret' => 'secret-a',
+			),
+		);
+
+		$this->assertSame( 'secret-a', RWF_Settings::get_github_webhook_secret_for_repository( 'reactwoo/reactwoo-geocore-pro' ) );
+		$this->assertSame( '', RWF_Settings::get_github_webhook_secret_for_repository( 'reactwoo/other' ) );
 	}
 }
