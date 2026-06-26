@@ -27,6 +27,7 @@ GEO_FAMILY_TARGETS = [
 
 GEO_GIT_DOC = GEO_FAMILY_TARGETS[0] / "docs" / "git-push-windows.md"
 GEO_GIT_RULE = GEO_FAMILY_TARGETS[0] / ".cursor" / "rules" / "git-push-windows.mdc"
+GEO_GIT_PUSH_SCRIPT = REPO_ROOT / "scripts" / "git_push.py"
 
 # Reset each init so copies stay task-neutral.
 EPHEMERAL_FILES = ("cursor-output.md", "test-output.md", "current-task.md")
@@ -81,6 +82,15 @@ def bootstrap_repo(target: Path, force: bool, family: str | None) -> None:
         else:
             shutil.copy2(git_rule_src, dst_git_rule)
             print(f"Copied {git_rule_src} -> {dst_git_rule}")
+
+    if family == "geo" and GEO_GIT_PUSH_SCRIPT.is_file():
+        dst_push = target / "scripts" / "git_push.py"
+        dst_push.parent.mkdir(parents=True, exist_ok=True)
+        if dst_push.exists() and not force:
+            print(f"Skip {dst_push} (exists; use --force)")
+        else:
+            shutil.copy2(GEO_GIT_PUSH_SCRIPT, dst_push)
+            print(f"Copied {GEO_GIT_PUSH_SCRIPT} -> {dst_push}")
 
     print(f"Done: {target.name}")
 

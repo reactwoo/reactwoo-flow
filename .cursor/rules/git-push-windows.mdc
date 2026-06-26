@@ -1,24 +1,20 @@
 ---
-description: Reliable git push on Windows — SSH only, no hung HTTPS retries
+description: Automated git push with diagnostics — fix root cause on failure, no blind retries
 alwaysApply: true
 ---
 
-# Git push on Windows (agents)
+# Git push (agents)
 
-**reactwoo-flow `origin` must be SSH:** `git@github.com:reactwoo/reactwoo-flow.git` (not HTTPS).
-
-Push (standalone — never chain with commit/tag):
+**Always** use:
 
 ```bash
-GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=15" git push origin main
+python scripts/git_push.py
 ```
 
-Or: `bash scripts/push-main.sh` (optional tag arg for release push).
+Release: `python scripts/git_push.py --ref vVERSION`
 
-## Stop — do not waste tokens retrying
+## On failure
 
-- Hung push (no output ~30s) → stop; report repo + `git remote get-url origin`.
-- Exit **139** or **-1073741819** → one retry in new shell, then stop.
-- One repo at a time when pushing multiple plugins.
+Read **`=== GIT PUSH DIAGNOSTIC ===`**, apply **`recommended_fix`**, then re-run. Do not blind-retry `git push`.
 
-See `reactwoo-geocore/docs/git-push-windows.md` and `.cursor/rules/release.mdc`.
+See `reactwoo-geocore/docs/git-push-windows.md`.
