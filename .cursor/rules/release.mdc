@@ -18,14 +18,15 @@ When shipping **reactwoo-flow**, follow `docs/releases-and-git-tags.md`.
 1. Bump `RWF_VERSION`, plugin header, and `readme.txt` Stable tag.
 2. `git commit` — standalone command.
 3. `git tag -a "vVERSION" -m "…"` — **standalone** command (never chained with push on Windows).
-4. `git push origin main "vVERSION"` — **one** push (branch + tag). On Windows use SSH (`.cursor/rules/git-push-windows.mdc`):
+4. `git push origin main "vVERSION"` — **one** push (branch + tag). **Without this step, `publish-update.yml` does not run and R2 is not updated.**
 
-```bash
-GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=15" git push origin main "vVERSION"
-```
+5. Verify: `git ls-remote --tags origin "vVERSION"` must return a line.
+
+Use plain git push (see `.cursor/rules/git-push-windows.mdc`). Do **not** wrap with `GIT_SSH_COMMAND` unless push failed and you are diagnosing SSH.
 
 ## Do not
 
+- Mark a release complete after commit/tag only.
 - Chain `commit && tag && push` in one line on Windows.
 - Run local `npm run package:zip` before tag push unless the user needs the file immediately — **tag push runs `publish-update.yml`** (R2 + API).
 - Commit `*.zip` files.
