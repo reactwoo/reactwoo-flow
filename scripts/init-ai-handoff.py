@@ -25,15 +25,19 @@ GEO_FAMILY_TARGETS = [
     Path(r"C:/Users/User/Local Sites/reactwoo/app/public/wp-content/plugins/reactwoo-geo-commerce"),
 ]
 
+GEO_GIT_DOC = GEO_FAMILY_TARGETS[0] / "docs" / "git-push-windows.md"
+GEO_GIT_RULE = GEO_FAMILY_TARGETS[0] / ".cursor" / "rules" / "git-push-windows.mdc"
+
 # Reset each init so copies stay task-neutral.
 EPHEMERAL_FILES = ("cursor-output.md", "test-output.md", "current-task.md")
 
 
-def bootstrap_repo(target: Path, force: bool) -> None:
+def bootstrap_repo(target: Path, force: bool, family: str | None) -> None:
     src_handoff = REPO_ROOT / "ai-handoff"
     dst_handoff = target / "ai-handoff"
     src_rule = REPO_ROOT / ".cursor" / "rules" / "ai-handoff.mdc"
     dst_rule = target / ".cursor" / "rules" / "ai-handoff.mdc"
+    dst_git_rule = target / ".cursor" / "rules" / "git-push-windows.mdc"
 
     if not src_handoff.is_dir():
         raise SystemExit(f"Source ai-handoff/ missing: {src_handoff}")
@@ -59,6 +63,24 @@ def bootstrap_repo(target: Path, force: bool) -> None:
             print(f"Copied {src_rule} -> {dst_rule}")
     else:
         print(f"Warning: rule not found at {src_rule}")
+
+    if family == "geo" and GEO_GIT_DOC.is_file():
+        dst_doc = target / "docs" / "git-push-windows.md"
+        if dst_doc.exists() and not force:
+            print(f"Skip {dst_doc} (exists; use --force)")
+        else:
+            dst_doc.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(GEO_GIT_DOC, dst_doc)
+            print(f"Copied {GEO_GIT_DOC} -> {dst_doc}")
+
+    git_rule_src = GEO_GIT_RULE if GEO_GIT_RULE.is_file() else None
+    if git_rule_src and git_rule_src.is_file():
+        dst_git_rule.parent.mkdir(parents=True, exist_ok=True)
+        if dst_git_rule.exists() and not force:
+            print(f"Skip {dst_git_rule} (exists; use --force to overwrite)")
+        else:
+            shutil.copy2(git_rule_src, dst_git_rule)
+            print(f"Copied {git_rule_src} -> {dst_git_rule}")
 
     print(f"Done: {target.name}")
 
@@ -97,7 +119,7 @@ def main() -> None:
         if not target.is_dir():
             print(f"Skip missing directory: {target}")
             continue
-        bootstrap_repo(target, args.force)
+        bootstrap_repo(target, args.force, args.family)
 
     print("See ai-handoff/README.md and reactwoo-geocore/docs/ai-handoff-workflow.md (Geo family).")
 

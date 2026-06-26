@@ -18,7 +18,11 @@ When shipping **reactwoo-flow**, follow `docs/releases-and-git-tags.md`.
 1. Bump `RWF_VERSION`, plugin header, and `readme.txt` Stable tag.
 2. `git commit` — standalone command.
 3. `git tag -a "vVERSION" -m "…"` — **standalone** command (never chained with push on Windows).
-4. `git push origin main "vVERSION"` — **one** push (branch + tag).
+4. `git push origin main "vVERSION"` — **one** push (branch + tag). On Windows use SSH (`.cursor/rules/git-push-windows.mdc`):
+
+```bash
+GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=15" git push origin main "vVERSION"
+```
 
 ## Do not
 
