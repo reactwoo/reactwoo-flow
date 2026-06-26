@@ -62,4 +62,21 @@ When a change is **complete and validated**, unless the user opts out: update **
 
 - Living roadmap: `PLAN.md`
 - Releases: `docs/releases-and-git-tags.md`
+- **ChatGPT ↔ Cursor file bridge:** `docs/ai-handoff-workflow.md`, repo `ai-handoff/` templates, `scripts/init-ai-handoff.py`
 - Role boundaries: ReactWoo Flow = orchestration; Jira = delivery; GitHub = source; Cursor = development execution
+
+## AI handoff (file bridge, no API)
+
+Use `ai-handoff/` markdown files to shuttle context between planner (ChatGPT/Codex) and Cursor without API wiring.
+
+| File | Written by |
+|------|------------|
+| `current-task.md` | Planner or Flow export |
+| `cursor-output.md` | Cursor after each pass |
+| `test-output.md` | Human after local tests |
+| `known-issues.md` | Both — debug journal |
+| `decisions.md` | Planner |
+
+- Cursor rule: `.cursor/rules/ai-handoff.mdc`
+- Flow item export: **Export AI Handoff Files** (zip with `current-task.md` populated from triage/spec)
+- Refresh all Geo family repos: `python scripts/init-ai-handoff.py --family geo --force`

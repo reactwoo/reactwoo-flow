@@ -4,6 +4,7 @@
  */
 
 define( 'ABSPATH', dirname( __DIR__ ) . '/reactwoo-flow/' );
+define( 'RWF_PLUGIN_DIR', dirname( __DIR__ ) . '/reactwoo-flow/' );
 
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
@@ -167,6 +168,32 @@ if ( ! function_exists( 'current_time' ) ) {
 	}
 }
 
+$GLOBALS['rwf_test_posts'] = array();
+
+if ( ! function_exists( 'get_post' ) ) {
+	function get_post( $post_id ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		return isset( $GLOBALS['rwf_test_posts'][ $post_id ] ) ? $GLOBALS['rwf_test_posts'][ $post_id ] : null;
+	}
+}
+
+if ( ! function_exists( 'get_the_title' ) ) {
+	function get_the_title( $post ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		return is_object( $post ) ? (string) $post->post_title : '';
+	}
+}
+
+if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+	function wp_strip_all_tags( $text ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		return strip_tags( (string) $text );
+	}
+}
+
+if ( ! function_exists( 'get_post_time' ) ) {
+	function get_post_time( $type, $gmt, $post ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		return '2026-06-07T12:00:00+00:00';
+	}
+}
+
 if ( ! function_exists( 'rwf_test_query_meta_ids' ) ) {
 	/**
 	 * @param array<int, array<string, mixed>> $meta_query Meta query clauses.
@@ -225,6 +252,7 @@ require_once $base . 'providers/class-rwf-provider-anthropic.php';
 require_once $base . 'providers/class-rwf-provider-cursor-mcp.php';
 require_once $base . 'class-rwf-automation.php';
 require_once $base . 'class-rwf-ai.php';
+require_once $base . 'class-rwf-handoff-markdown.php';
 require_once $base . 'class-rwf-rest.php';
 require_once $base . 'integrations/class-rwf-integration-http.php';
 require_once $base . 'integrations/class-rwf-integration-jira.php';

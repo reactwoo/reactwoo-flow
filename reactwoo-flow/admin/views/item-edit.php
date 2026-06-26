@@ -179,6 +179,12 @@ $status_history = $is_existing ? RWF_CPT::get_status_history( $post_id ) : array
 				>
 					<?php esc_html_e( 'Export Handoff JSON', 'reactwoo-flow' ); ?>
 				</a>
+				<a
+					class="button"
+					href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=rwf_export_ai_handoff_files&post_id=' . $post_id ), 'rwf_export_ai_handoff_files_' . $post_id ) ); ?>"
+				>
+					<?php esc_html_e( 'Export AI Handoff Files', 'reactwoo-flow' ); ?>
+				</a>
 			<?php endif; ?>
 			<?php if ( ! empty( $agent_runs ) ) : ?>
 				<a

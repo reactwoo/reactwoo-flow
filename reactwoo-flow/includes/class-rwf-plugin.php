@@ -62,6 +62,7 @@ final class RWF_Plugin {
 		require_once RWF_PLUGIN_DIR . 'includes/providers/class-rwf-provider-cursor-mcp.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-agent.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-ai.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-handoff-markdown.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-uploads.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-rest.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-admin.php';

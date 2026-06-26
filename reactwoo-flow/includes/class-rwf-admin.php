@@ -30,6 +30,7 @@ class RWF_Admin {
 		add_action( 'admin_post_rwf_export_specification', array( __CLASS__, 'handle_export_specification' ) );
 		add_action( 'admin_post_rwf_export_release_notes', array( __CLASS__, 'handle_export_release_notes' ) );
 		add_action( 'admin_post_rwf_export_development_handoff', array( __CLASS__, 'handle_export_development_handoff' ) );
+		add_action( 'admin_post_rwf_export_ai_handoff_files', array( __CLASS__, 'handle_export_ai_handoff_files' ) );
 		add_action( 'admin_post_rwf_export_agent_runs', array( __CLASS__, 'handle_export_agent_runs' ) );
 		add_action( 'admin_post_rwf_export_item_context', array( __CLASS__, 'handle_export_item_context' ) );
 		add_action( 'admin_post_rwf_export_qa_review', array( __CLASS__, 'handle_export_qa_review' ) );
@@ -617,6 +618,83 @@ class RWF_Admin {
 		header( 'Content-Length: ' . strlen( $handoff ) );
 
 		echo $handoff; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		exit;
+	}
+
+	/**
+	 * Download ai-handoff/ markdown files as a zip for Cursor ↔ ChatGPT file bridge.
+	 */
+	public static function handle_export_ai_handoff_files() {
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id || ! RWF_Capabilities::can_edit_item( $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to export AI handoff files.', 'reactwoo-flow' ) );
+		}
+
+		check_admin_referer( 'rwf_export_ai_handoff_files_' . $post_id );
+
+		$post = get_post( $post_id );
+		if ( ! $post || RWF_CPT::POST_TYPE !== $post->post_type ) {
+			wp_die( esc_html__( 'ReactWoo Flow item not found.', 'reactwoo-flow' ) );
+		}
+
+		if ( ! RWF_CPT::is_development_handoff_prepared( $post_id ) ) {
+			wp_die( esc_html__( 'Prepare a development handoff before exporting AI handoff files.', 'reactwoo-flow' ) );
+		}
+
+		$files = RWF_Handoff_Markdown::build_files_for_item( $post_id );
+		$slug  = sanitize_title( get_post_field( 'post_name', $post_id ) );
+		$base  = sanitize_file_name( 'rwf-' . $post_id . ( $slug ? '-' . $slug : '' ) . '-ai-handoff' );
+
+		if ( class_exists( 'ZipArchive' ) ) {
+			$tmp = wp_tempnam( $base . '.zip' );
+
+			if ( ! $tmp ) {
+				wp_die( esc_html__( 'Could not create a temporary file for the handoff archive.', 'reactwoo-flow' ) );
+			}
+
+			$zip = new ZipArchive();
+
+			if ( true !== $zip->open( $tmp, ZipArchive::OVERWRITE ) ) {
+				@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				wp_die( esc_html__( 'Could not open the handoff archive.', 'reactwoo-flow' ) );
+			}
+
+			foreach ( $files as $filename => $body ) {
+				$zip->addFromString( 'ai-handoff/' . $filename, $body );
+			}
+
+			$zip->close();
+
+			$bytes = filesize( $tmp );
+
+			nocache_headers();
+			header( 'Content-Type: application/zip' );
+			header( 'Content-Disposition: attachment; filename="' . $base . '.zip"' );
+
+			if ( false !== $bytes ) {
+				header( 'Content-Length: ' . $bytes );
+			}
+
+			readfile( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+			@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			exit;
+		}
+
+		$bundle = '';
+
+		foreach ( $files as $filename => $body ) {
+			$bundle .= "--- ai-handoff/{$filename} ---\n";
+			$bundle .= $body;
+			$bundle .= "\n\n";
+		}
+
+		nocache_headers();
+		header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename="' . $base . '.txt"' );
+		header( 'Content-Length: ' . strlen( $bundle ) );
+
+		echo $bundle; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 
