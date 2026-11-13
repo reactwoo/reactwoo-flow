@@ -92,21 +92,108 @@ class RWF_CPT {
 	/**
 	 * Get product options.
 	 *
+	 * Current catalogue first, then legacy products kept so existing items,
+	 * filters and the GitHub product map still resolve.
+	 *
 	 * @return array
 	 */
 	public static function get_products() {
-		return array(
-			'reactwoo_core'           => __( 'ReactWoo Core', 'reactwoo-flow' ),
-			'wooaliai'                => __( 'WooAliAI', 'reactwoo-flow' ),
-			'geocore_pro'             => __( 'GeoCore Pro', 'reactwoo-flow' ),
-			'google_reviews'          => __( 'Google Reviews', 'reactwoo-flow' ),
-			'whmcs_bridge'            => __( 'WHMCS Bridge', 'reactwoo-flow' ),
+		$products = array(
+			// Current catalogue.
+			'geo_core'                => __( 'Geo Core', 'reactwoo-flow' ),
+			'geocore_pro'             => __( 'Geo Core Pro', 'reactwoo-flow' ),
+			'geo_commerce'            => __( 'Geo Commerce', 'reactwoo-flow' ),
+			'geo_optimise'            => __( 'Geo Optimise', 'reactwoo-flow' ),
+			'atomic'                  => __( 'ReactWoo Atomic', 'reactwoo-flow' ),
+			'atomic_pro'              => __( 'ReactWoo Atomic Pro', 'reactwoo-flow' ),
+			'decision_cloud'          => __( 'Decision Cloud', 'reactwoo-flow' ),
+			'maintenance'             => __( 'Website Maintenance', 'reactwoo-flow' ),
+			'account_billing'         => __( 'Account, licences or billing', 'reactwoo-flow' ),
+			'other'                   => __( 'Something else', 'reactwoo-flow' ),
+			// Internal systems.
 			'licensing_platform'      => __( 'Licensing Platform', 'reactwoo-flow' ),
 			'api_platform'            => __( 'API Platform', 'reactwoo-flow' ),
 			'customer_portal'         => __( 'Customer Portal', 'reactwoo-flow' ),
 			'reactwoo_website'        => __( 'ReactWoo Website', 'reactwoo-flow' ),
 			'internal_infrastructure' => __( 'Internal Infrastructure', 'reactwoo-flow' ),
+			// Legacy products.
+			'reactwoo_core'           => __( 'ReactWoo Core (legacy)', 'reactwoo-flow' ),
+			'wooaliai'                => __( 'WooAliAI (legacy)', 'reactwoo-flow' ),
+			'google_reviews'          => __( 'Google Reviews (legacy)', 'reactwoo-flow' ),
+			'whmcs_bridge'            => __( 'WHMCS Bridge (legacy)', 'reactwoo-flow' ),
 		);
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filter all product options known to Flow.
+			 *
+			 * @param array $products Product key => label.
+			 */
+			$products = (array) apply_filters( 'rwf_products', $products );
+		}
+
+		return $products;
+	}
+
+	/**
+	 * Products a customer can choose on the public intake form.
+	 *
+	 * @return array
+	 */
+	public static function get_public_products() {
+		$keys = array(
+			'geo_core',
+			'geocore_pro',
+			'geo_commerce',
+			'geo_optimise',
+			'atomic',
+			'atomic_pro',
+			'decision_cloud',
+			'maintenance',
+			'account_billing',
+			'other',
+		);
+
+		$public = array_intersect_key( self::get_products(), array_flip( $keys ) );
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filter the products shown on the public intake form.
+			 *
+			 * @param array $public Product key => label.
+			 */
+			$public = (array) apply_filters( 'rwf_public_products', $public );
+		}
+
+		return $public;
+	}
+
+	/**
+	 * Request types a customer can choose on the public intake form.
+	 *
+	 * Internal types (technical debt, security, research, release tasks) stay
+	 * staff-only. Customers who suspect a security problem use the support
+	 * type; staff reclassify after triage.
+	 *
+	 * @return array
+	 */
+	public static function get_public_item_types() {
+		$public = array(
+			'support_ticket'  => __( 'Help or a question', 'reactwoo-flow' ),
+			'bug_report'      => __( 'Something is not working', 'reactwoo-flow' ),
+			'feature_request' => __( 'Feature request', 'reactwoo-flow' ),
+		);
+
+		if ( function_exists( 'apply_filters' ) ) {
+			/**
+			 * Filter the request types shown on the public intake form. Keys must exist in get_item_types().
+			 *
+			 * @param array $public Type key => customer-facing label.
+			 */
+			$public = (array) apply_filters( 'rwf_public_item_types', $public );
+		}
+
+		return array_intersect_key( $public, self::get_item_types() );
 	}
 
 	/**
@@ -116,21 +203,63 @@ class RWF_CPT {
 	 */
 	public static function get_statuses() {
 		return array(
-			'new'                     => __( 'New', 'reactwoo-flow' ),
-			'needs_triage'            => __( 'Needs Triage', 'reactwoo-flow' ),
-			'awaiting_information'    => __( 'Awaiting Information', 'reactwoo-flow' ),
-			'confirmed'               => __( 'Confirmed', 'reactwoo-flow' ),
-			'ready_for_specification' => __( 'Ready for Specification', 'reactwoo-flow' ),
-			'ready_for_development'   => __( 'Ready for Development', 'reactwoo-flow' ),
-			'in_development'          => __( 'In Development', 'reactwoo-flow' ),
-			'ready_for_qa'            => __( 'Ready for QA', 'reactwoo-flow' ),
-			'failed_qa'               => __( 'Failed QA', 'reactwoo-flow' ),
-			'ready_for_release'       => __( 'Ready for Release', 'reactwoo-flow' ),
-			'released'                => __( 'Released', 'reactwoo-flow' ),
-			'closed'                  => __( 'Closed', 'reactwoo-flow' ),
-			'duplicate'               => __( 'Duplicate', 'reactwoo-flow' ),
-			'wont_fix'                => __( "Won't Fix", 'reactwoo-flow' ),
+			'new'                        => __( 'New', 'reactwoo-flow' ),
+			'needs_triage'               => __( 'Needs Triage', 'reactwoo-flow' ),
+			'awaiting_information'       => __( 'Awaiting Information', 'reactwoo-flow' ),
+			// Support path.
+			'awaiting_access'            => __( 'Awaiting Site Access', 'reactwoo-flow' ),
+			'diagnosing'                 => __( 'Diagnosing', 'reactwoo-flow' ),
+			'fix_proposed'               => __( 'Fix Proposed', 'reactwoo-flow' ),
+			'awaiting_customer_approval' => __( 'Awaiting Customer Approval', 'reactwoo-flow' ),
+			'applying_fix'               => __( 'Applying Fix', 'reactwoo-flow' ),
+			'verifying'                  => __( 'Verifying Fix', 'reactwoo-flow' ),
+			'resolved'                   => __( 'Resolved', 'reactwoo-flow' ),
+			// Development path.
+			'confirmed'                  => __( 'Confirmed', 'reactwoo-flow' ),
+			'ready_for_specification'    => __( 'Ready for Specification', 'reactwoo-flow' ),
+			'ready_for_development'      => __( 'Ready for Development', 'reactwoo-flow' ),
+			'in_development'             => __( 'In Development', 'reactwoo-flow' ),
+			'ready_for_qa'               => __( 'Ready for QA', 'reactwoo-flow' ),
+			'failed_qa'                  => __( 'Failed QA', 'reactwoo-flow' ),
+			'ready_for_release'          => __( 'Ready for Release', 'reactwoo-flow' ),
+			'released'                   => __( 'Released', 'reactwoo-flow' ),
+			// Final states.
+			'closed'                     => __( 'Closed', 'reactwoo-flow' ),
+			'duplicate'                  => __( 'Duplicate', 'reactwoo-flow' ),
+			'wont_fix'                   => __( "Won't Fix", 'reactwoo-flow' ),
 		);
+	}
+
+	/**
+	 * Statuses on the support path (diagnosis and fixes on a customer site).
+	 *
+	 * @return string[]
+	 */
+	public static function get_support_statuses() {
+		return array( 'awaiting_access', 'diagnosing', 'fix_proposed', 'awaiting_customer_approval', 'applying_fix', 'verifying', 'resolved' );
+	}
+
+	/**
+	 * Status an item moves to after successful triage.
+	 *
+	 * Customer support requests, and bug reports from the website form, go to
+	 * diagnosis. Everything else enters the development path at Confirmed.
+	 * A support item escalates to development by moving from Diagnosing to Confirmed.
+	 *
+	 * @param string $item_type Item type key.
+	 * @param string $source    Source key.
+	 * @return string
+	 */
+	public static function get_status_after_triage( $item_type, $source = '' ) {
+		if ( 'support_ticket' === $item_type ) {
+			return 'diagnosing';
+		}
+
+		if ( 'bug_report' === $item_type && 'website_form' === $source ) {
+			return 'diagnosing';
+		}
+
+		return 'confirmed';
 	}
 
 	/**
@@ -140,20 +269,30 @@ class RWF_CPT {
 	 */
 	public static function get_status_transition_map() {
 		return array(
-			'new'                     => array( 'needs_triage', 'awaiting_information', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
-			'needs_triage'            => array( 'awaiting_information', 'confirmed', 'ready_for_specification', 'closed', 'duplicate', 'wont_fix' ),
-			'awaiting_information'    => array( 'needs_triage', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
-			'confirmed'               => array( 'ready_for_specification', 'ready_for_development', 'closed', 'duplicate', 'wont_fix' ),
-			'ready_for_specification' => array( 'ready_for_development', 'closed', 'duplicate', 'wont_fix' ),
-			'ready_for_development'   => array( 'in_development', 'closed', 'duplicate', 'wont_fix' ),
-			'in_development'          => array( 'ready_for_qa', 'closed' ),
-			'ready_for_qa'            => array( 'failed_qa', 'ready_for_release', 'closed' ),
-			'failed_qa'               => array( 'in_development', 'ready_for_qa', 'closed' ),
-			'ready_for_release'       => array( 'released', 'closed' ),
-			'released'                => array( 'closed' ),
-			'closed'                  => array( 'needs_triage' ),
-			'duplicate'               => array( 'needs_triage', 'closed' ),
-			'wont_fix'                => array( 'needs_triage', 'closed' ),
+			'new'                        => array( 'needs_triage', 'awaiting_information', 'diagnosing', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
+			'needs_triage'               => array( 'awaiting_information', 'awaiting_access', 'diagnosing', 'confirmed', 'ready_for_specification', 'closed', 'duplicate', 'wont_fix' ),
+			'awaiting_information'       => array( 'needs_triage', 'awaiting_access', 'diagnosing', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
+			// Support path.
+			'awaiting_access'            => array( 'diagnosing', 'awaiting_information', 'closed', 'wont_fix' ),
+			'diagnosing'                 => array( 'fix_proposed', 'awaiting_information', 'awaiting_access', 'resolved', 'confirmed', 'closed', 'duplicate', 'wont_fix' ),
+			'fix_proposed'               => array( 'awaiting_customer_approval', 'applying_fix', 'diagnosing', 'closed', 'wont_fix' ),
+			'awaiting_customer_approval' => array( 'applying_fix', 'diagnosing', 'closed', 'wont_fix' ),
+			'applying_fix'               => array( 'verifying', 'diagnosing' ),
+			'verifying'                  => array( 'resolved', 'applying_fix', 'diagnosing' ),
+			'resolved'                   => array( 'closed', 'diagnosing' ),
+			// Development path.
+			'confirmed'                  => array( 'ready_for_specification', 'ready_for_development', 'diagnosing', 'closed', 'duplicate', 'wont_fix' ),
+			'ready_for_specification'    => array( 'ready_for_development', 'closed', 'duplicate', 'wont_fix' ),
+			'ready_for_development'      => array( 'in_development', 'closed', 'duplicate', 'wont_fix' ),
+			'in_development'             => array( 'ready_for_qa', 'closed' ),
+			'ready_for_qa'               => array( 'failed_qa', 'ready_for_release', 'closed' ),
+			'failed_qa'                  => array( 'in_development', 'ready_for_qa', 'closed' ),
+			'ready_for_release'          => array( 'released', 'closed' ),
+			'released'                   => array( 'closed' ),
+			// Final states.
+			'closed'                     => array( 'needs_triage', 'diagnosing' ),
+			'duplicate'                  => array( 'needs_triage', 'closed' ),
+			'wont_fix'                   => array( 'needs_triage', 'closed' ),
 		);
 	}
 

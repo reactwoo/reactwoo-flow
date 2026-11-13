@@ -12,6 +12,30 @@
 
 ---
 
+## v0.7.0
+
+Phase 9 — support foundations. First step of the support-sessions plan. Not yet released.
+
+### Added
+
+- `RWF_Redact`: customer email, reporter, licence key, site URL, screenshots and log fields are withheld from AI providers and Cursor. Emails, customer URLs, IP addresses, keys and secrets inside text are replaced with placeholders. Filters `rwf_ai_excluded_fields` and `rwf_ai_safe_url_hosts`.
+- xAI (Grok) provider (`xai`), OpenAI-compatible, default model `grok-4.3`, with **xAI (Grok) API Key** in Settings.
+- Token usage on every agent run, and the exact cost in USD where the provider reports it (xAI `cost_in_usd_ticks`).
+- Support statuses: Awaiting Site Access, Diagnosing, Fix Proposed, Awaiting Customer Approval, Applying Fix, Verifying Fix, Resolved.
+- `RWF_CPT::get_public_products()`, `get_public_item_types()`, `get_support_statuses()`, `get_status_after_triage()`.
+- Dashboard **In Support** count.
+- Products: Geo Core, Geo Commerce, Geo Optimise, ReactWoo Atomic, Atomic Pro, Decision Cloud, Website Maintenance, Account/licences/billing, Something else. Filter `rwf_products`.
+
+### Changed
+
+- Every agent run's input context is redacted in `RWF_Agent::prepare_agent()`, whichever builder made it. The REST context endpoint and context export are redacted too.
+- The public intake form offers only Help or a question, Something is not working, and Feature request, and only current products. The submission handler rejects any other type or product.
+- After triage, support tickets (and website-form bug reports) move to Diagnosing instead of Confirmed.
+- Old products are labelled "(legacy)" and kept so existing items and the GitHub product map still resolve. "GeoCore Pro" is now "Geo Core Pro".
+- Triage prompt explains redaction placeholders and drafts customer replies without a name.
+
+---
+
 ## v0.6.1
 
 GitHub settings UX — product repo selects and per-repo webhook secrets.

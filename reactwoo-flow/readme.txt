@@ -5,7 +5,7 @@ Tested up to: 6.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Stable tag: 0.6.1
+Stable tag: 0.7.0
 
 Internal ReactWoo operations platform for intake, triage, and agent orchestration.
 
@@ -20,6 +20,11 @@ ReactWoo Flow manages product ideas, support tickets, bug reports, and release t
 3. Configure agent providers under **ReactWoo Flow → Settings**.
 
 == Changelog ==
+
+= 0.7.0 =
+* Customer data and licence keys are withheld from AI providers; emails, URLs, keys and secrets in text are redacted.
+* xAI (Grok) provider with exact cost per run; token usage recorded for all providers.
+* Support workflow statuses; public intake limited to customer request types and current products.
 
 = 0.3.0 =
 * QA and UX review agents, Jira status sync, workflow automation settings.

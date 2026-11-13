@@ -82,13 +82,13 @@ Agent types (configured in settings, executed via `RWF_Agent`):
 
 | Agent | Preferred provider | Status |
 |-------|-------------------|--------|
-| Planning | OpenAI / GPT | **Executable** (triage + specification) |
+| Planning | OpenAI / GPT (xAI Grok for support) | **Executable** (triage + specification) |
 | Development | Cursor MCP | **Prepare only** (handoff package; MCP send when configured) |
 | QA | OpenAI / GPT | **Executable** (Markdown review) |
 | UX | OpenAI / GPT | **Executable** (Markdown review) |
 | Release | OpenAI / GPT | **Executable** (release notes) |
 
-Provider registry: `openai`, `anthropic`, `cursor_mcp` (prepare-only), `manual`.
+Provider registry: `openai`, `anthropic`, `xai`, `cursor_mcp` (prepare-only), `manual`.
 
 ## AI layer
 
@@ -161,6 +161,23 @@ Formal phase docs live under `docs/phases/`.
 | [Phase 6](docs/phases/phase-6.md) | Delivery visibility, extended automation, items REST | Complete (v0.4.0) |
 | [Phase 7](docs/phases/phase-7.md) | Triage delivery hints, Jira epic linking | Complete (v0.5.0) |
 | [Phase 8](docs/phases/phase-8.md) | GitHub webhooks for PR/CI sync | Complete (v0.6.0) |
+| [Phase 9](docs/phases/phase-9.md) | Support foundations: redaction, xAI provider, AI cost capture, support workflow | Complete in source (v0.7.0), not released |
+
+
+## Support sessions (next)
+
+Flow is becoming the support system: each ticket linked to a customer, their plan or licence and their site, with read-only diagnostics through the Support Connector and Maintenance Bridge (`reactwoo-mainwp`), time logged to the portal support ledger, and fixes only with customer consent, staff approval and a backup.
+
+Decisions (13 Nov 2026): 15-minute billing increments; licensed plugins supported while the licence is valid; paid maintenance plans ahead of licence-only customers; AI time billable at the customer's own per-minute rate (plan minutes valued at the additional-support pack price) in their currency; USD rate from Frankfurter; licence-only customers get a diagnostics export, not remote access; customer screens in My Account; first-response targets in UK working hours: Business 4h, Standard/Essential 8h, licence-only 2 working days; AI via the xAI pay-as-you-go API.
+
+| Support phase | Scope | Status |
+|---|---|---|
+| 0 | Redaction, xAI provider, usage/cost capture, public form, support statuses | Done in v0.7.0 (Phase 9) |
+| 1 | Customer identity and entitlement, My Account support tab, notifications | Planned |
+| 2 | Read-only diagnostics via connector and bridge, consent capture | Planned |
+| 3 | Session timer, AI cost to minutes, ledger debit, statements | Planned |
+| 4 | Allow-listed fixes with backup, approval and revert | Planned |
+| 5 | Proactive items from bridge signals | Planned |
 
 ---
 
@@ -268,6 +285,9 @@ Prioritised work after documentation baseline. Re-order as priorities shift.
 | Custom capabilities on activation | Operational access separate from generic `edit_posts` | v0.1.1 |
 | Provider adapter interface | OpenAI logic extracted; future Anthropic/Cursor adapters plug in cleanly | v0.1.1 |
 | Auto-advance to `confirmed` after triage | Reduces manual status clicks for intake workflow | v0.1.1 |
+| Support items auto-advance to `diagnosing` instead | Support work stays out of the development pipeline unless escalated | v0.7.0 |
+| Redact all context sent to external agents | UK GDPR: no customer personal data or licence keys to AI providers | v0.7.0 |
+| Store provider-reported cost only, never estimate | AI time is billed to customers; charges must be traceable | v0.7.0 |
 
 ---
 

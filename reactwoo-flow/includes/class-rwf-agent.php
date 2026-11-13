@@ -28,6 +28,7 @@ class RWF_Agent {
 			'openai'     => __( 'OpenAI / GPT-compatible', 'reactwoo-flow' ),
 			'cursor_mcp' => __( 'Cursor MCP Bridge (future)', 'reactwoo-flow' ),
 			'anthropic'  => __( 'Anthropic Claude', 'reactwoo-flow' ),
+			'xai'        => __( 'xAI Grok', 'reactwoo-flow' ),
 			'manual'     => __( 'Manual / External Agent', 'reactwoo-flow' ),
 		);
 	}
@@ -136,6 +137,7 @@ class RWF_Agent {
 			$providers = array(
 				new RWF_Provider_OpenAI(),
 				new RWF_Provider_Anthropic(),
+				new RWF_Provider_XAI(),
 				new RWF_Provider_Cursor_MCP(),
 			);
 		}
@@ -172,16 +174,68 @@ class RWF_Agent {
 			'model'           => $model,
 			'prompt_template' => $prompt_template,
 			'prompt'          => self::load_prompt_template( $prompt_template ),
-			'input_context'   => isset( $args['input_context'] ) && is_array( $args['input_context'] ) ? $args['input_context'] : array(),
+			// Every provider receives redacted context, whichever builder produced it.
+			'input_context'   => isset( $args['input_context'] ) && is_array( $args['input_context'] ) ? RWF_Redact::redact_value( $args['input_context'] ) : array(),
 			'response_format' => isset( $args['response_format'] ) && is_array( $args['response_format'] ) ? $args['response_format'] : array(),
 			'temperature'     => isset( $args['temperature'] ) ? (float) $args['temperature'] : 0.2,
 			'timeout'         => isset( $args['timeout'] ) ? absint( $args['timeout'] ) : 60,
 			'output'          => '',
 			'status'          => self::STATUS_PENDING,
 			'error'           => '',
+			'usage'           => self::empty_usage(),
 			'started_at'      => '',
 			'completed_at'    => '',
 		);
+	}
+
+	/**
+	 * Usage record with no data.
+	 *
+	 * @return array
+	 */
+	public static function empty_usage() {
+		return array(
+			'input_tokens'  => 0,
+			'output_tokens' => 0,
+			'total_tokens'  => 0,
+			'cost_usd'      => null,
+			'cost_source'   => '',
+		);
+	}
+
+	/**
+	 * Normalise token usage and cost from a provider response.
+	 *
+	 * Handles OpenAI-style (prompt_tokens / completion_tokens), Anthropic-style
+	 * (input_tokens / output_tokens) and xAI cost_in_usd_ticks
+	 * (1 USD = 10,000,000,000 ticks). Cost stays null when the provider does not
+	 * report it; Flow never estimates a charge it was not told about.
+	 *
+	 * @param array $decoded Decoded response body.
+	 * @return array
+	 */
+	public static function usage_from_response( array $decoded ) {
+		$usage = self::empty_usage();
+
+		if ( empty( $decoded['usage'] ) || ! is_array( $decoded['usage'] ) ) {
+			return $usage;
+		}
+
+		$raw = $decoded['usage'];
+
+		$input  = isset( $raw['prompt_tokens'] ) ? $raw['prompt_tokens'] : ( isset( $raw['input_tokens'] ) ? $raw['input_tokens'] : 0 );
+		$output = isset( $raw['completion_tokens'] ) ? $raw['completion_tokens'] : ( isset( $raw['output_tokens'] ) ? $raw['output_tokens'] : 0 );
+
+		$usage['input_tokens']  = absint( $input );
+		$usage['output_tokens'] = absint( $output );
+		$usage['total_tokens']  = isset( $raw['total_tokens'] ) ? absint( $raw['total_tokens'] ) : $usage['input_tokens'] + $usage['output_tokens'];
+
+		if ( isset( $raw['cost_in_usd_ticks'] ) && is_numeric( $raw['cost_in_usd_ticks'] ) ) {
+			$usage['cost_usd']    = round( (float) $raw['cost_in_usd_ticks'] / 10000000000, 8 );
+			$usage['cost_source'] = 'provider';
+		}
+
+		return $usage;
 	}
 
 	/**

@@ -94,6 +94,10 @@ class RWF_Provider_OpenAI implements RWF_Provider_Interface {
 		}
 
 		$decoded = json_decode( $body, true );
+		if ( is_array( $decoded ) ) {
+			$agent['usage'] = RWF_Agent::usage_from_response( $decoded );
+		}
+
 		if ( ! is_array( $decoded ) || empty( $decoded['choices'][0]['message']['content'] ) ) {
 			$agent['status']       = RWF_Agent::STATUS_FAILED;
 			$agent['error']        = __( 'Provider returned an unexpected response.', 'reactwoo-flow' );

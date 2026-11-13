@@ -133,6 +133,13 @@ class RWF_Settings {
 				'section'           => 'providers',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
 			),
+			'rwf_xai_api_key'          => array(
+				'label'             => __( 'xAI (Grok) API Key', 'reactwoo-flow' ),
+				'type'              => 'password',
+				'section'           => 'providers',
+				'description'       => __( 'Pay-as-you-go key from a ReactWoo team in the xAI Console. Each run records its exact cost for AI-time billing. Suggested model: grok-4.3.', 'reactwoo-flow' ),
+				'sanitize_callback' => array( __CLASS__, 'sanitize_secret' ),
+			),
 			'rwf_cursor_mcp_endpoint'  => array(
 				'label'       => __( 'Cursor MCP Bridge Endpoint', 'reactwoo-flow' ),
 				'type'        => 'url',

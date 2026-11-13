@@ -32,6 +32,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<span class="rwf-stat-label"><?php esc_html_e( 'Awaiting Triage', 'reactwoo-flow' ); ?></span>
 		</div>
 		<div class="rwf-stat-card">
+			<span class="rwf-stat-number"><?php echo esc_html( $stats['in_support'] ); ?></span>
+			<span class="rwf-stat-label"><?php esc_html_e( 'In Support', 'reactwoo-flow' ); ?></span>
+		</div>
+		<div class="rwf-stat-card">
 			<span class="rwf-stat-number"><?php echo esc_html( $stats['in_development'] ); ?></span>
 			<span class="rwf-stat-label"><?php esc_html_e( 'In Development', 'reactwoo-flow' ); ?></span>
 		</div>
