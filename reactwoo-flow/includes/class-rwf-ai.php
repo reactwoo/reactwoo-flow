@@ -421,6 +421,10 @@ class RWF_AI {
 			}
 
 			foreach ( $group['fields'] as $field_key => $definition ) {
+				if ( RWF_Redact::is_excluded_field( $field_key ) ) {
+					continue;
+				}
+
 				$value = RWF_CPT::get_meta( $post_id, $field_key );
 
 				if ( '' === $value ) {
@@ -438,7 +442,7 @@ class RWF_AI {
 			}
 		}
 
-		return $context;
+		return RWF_Redact::redact_value( $context );
 	}
 
 	/**
@@ -550,7 +554,7 @@ class RWF_AI {
 			);
 		}
 
-		return $payload;
+		return RWF_Redact::redact_value( $payload );
 	}
 
 	/**
@@ -564,6 +568,18 @@ class RWF_AI {
 		$current_status = RWF_CPT::get_meta( $post_id, 'status' );
 		$current_status = $current_status ? $current_status : 'new';
 
+		return RWF_Redact::redact_value( self::build_cursor_context_raw( $post_id, $post, $current_status ) );
+	}
+
+	/**
+	 * Unredacted Cursor context. Only build_cursor_context() may call this.
+	 *
+	 * @param int          $post_id        Item post ID.
+	 * @param WP_Post|null $post           Post object.
+	 * @param string       $current_status Current workflow status.
+	 * @return array
+	 */
+	private static function build_cursor_context_raw( $post_id, $post, $current_status ) {
 		return array(
 			'item'                 => self::build_item_context( $post_id ),
 			'workflow'             => array(
@@ -658,7 +674,7 @@ class RWF_AI {
 		if ( in_array( $current_status, array( 'new', 'needs_triage' ), true ) ) {
 			RWF_CPT::transition_status(
 				$post_id,
-				'confirmed',
+				RWF_CPT::get_status_after_triage( RWF_CPT::get_meta( $post_id, 'item_type' ), RWF_CPT::get_meta( $post_id, 'source' ) ),
 				__( 'Auto-advanced after successful triage.', 'reactwoo-flow' )
 			);
 		}
@@ -841,6 +857,7 @@ class RWF_AI {
 			'prompt_template' => isset( $agent['prompt_template'] ) ? $agent['prompt_template'] : '',
 			'status'          => isset( $agent['status'] ) ? $agent['status'] : '',
 			'error'           => isset( $agent['error'] ) ? $agent['error'] : '',
+			'usage'           => isset( $agent['usage'] ) && is_array( $agent['usage'] ) ? $agent['usage'] : RWF_Agent::empty_usage(),
 			'started_at'      => isset( $agent['started_at'] ) ? $agent['started_at'] : '',
 			'completed_at'    => isset( $agent['completed_at'] ) ? $agent['completed_at'] : '',
 			'recorded_at'     => current_time( 'mysql' ),

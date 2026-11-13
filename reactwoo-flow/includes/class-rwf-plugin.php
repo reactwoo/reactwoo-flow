@@ -56,9 +56,11 @@ final class RWF_Plugin {
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-capabilities.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-cpt.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-settings.php';
+		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-redact.php';
 		require_once RWF_PLUGIN_DIR . 'includes/providers/interface-rwf-provider.php';
 		require_once RWF_PLUGIN_DIR . 'includes/providers/class-rwf-provider-openai.php';
 		require_once RWF_PLUGIN_DIR . 'includes/providers/class-rwf-provider-anthropic.php';
+		require_once RWF_PLUGIN_DIR . 'includes/providers/class-rwf-provider-xai.php';
 		require_once RWF_PLUGIN_DIR . 'includes/providers/class-rwf-provider-cursor-mcp.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-agent.php';
 		require_once RWF_PLUGIN_DIR . 'includes/class-rwf-ai.php';

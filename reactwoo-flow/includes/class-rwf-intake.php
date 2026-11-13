@@ -82,7 +82,7 @@ class RWF_Intake {
 						<span><?php esc_html_e( 'Product', 'reactwoo-flow' ); ?></span>
 						<select name="rwf_product" required>
 							<option value=""><?php esc_html_e( 'Select product', 'reactwoo-flow' ); ?></option>
-							<?php foreach ( RWF_CPT::get_products() as $value => $label ) : ?>
+							<?php foreach ( RWF_CPT::get_public_products() as $value => $label ) : ?>
 								<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $atts['product'], $value ); ?>>
 									<?php echo esc_html( $label ); ?>
 								</option>
@@ -93,7 +93,7 @@ class RWF_Intake {
 					<label>
 						<span><?php esc_html_e( 'Request Type', 'reactwoo-flow' ); ?></span>
 						<select name="rwf_item_type" required>
-							<?php foreach ( RWF_CPT::get_item_types() as $value => $label ) : ?>
+							<?php foreach ( RWF_CPT::get_public_item_types() as $value => $label ) : ?>
 								<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $atts['item_type'], $value ); ?>>
 									<?php echo esc_html( $label ); ?>
 								</option>
@@ -239,8 +239,9 @@ class RWF_Intake {
 		$product     = isset( $_POST['rwf_product'] ) ? sanitize_key( wp_unslash( $_POST['rwf_product'] ) ) : '';
 		$item_type   = isset( $_POST['rwf_item_type'] ) ? sanitize_key( wp_unslash( $_POST['rwf_item_type'] ) ) : '';
 
-		$products   = RWF_CPT::get_products();
-		$item_types = RWF_CPT::get_item_types();
+		// Only public choices are accepted, so a crafted POST cannot file internal item types.
+		$products   = RWF_CPT::get_public_products();
+		$item_types = RWF_CPT::get_public_item_types();
 
 		if ( '' === $title || '' === $description || ! isset( $products[ $product ] ) || ! isset( $item_types[ $item_type ] ) ) {
 			self::redirect_with_error( 'required' );

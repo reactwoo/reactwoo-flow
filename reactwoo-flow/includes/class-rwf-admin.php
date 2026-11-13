@@ -846,6 +846,7 @@ class RWF_Admin {
 		return array(
 			'new'              => self::count_items_by_status( 'new' ),
 			'needs_triage'     => self::count_items_by_status( 'needs_triage' ),
+			'in_support'       => array_sum( array_map( array( __CLASS__, 'count_items_by_status' ), array_diff( RWF_CPT::get_support_statuses(), array( 'resolved' ) ) ) ),
 			'in_development'   => self::count_items_by_status( 'in_development' ),
 			'ready_for_qa'     => self::count_items_by_status( 'ready_for_qa' ),
 			'ready_for_release' => self::count_items_by_status( 'ready_for_release' ),
